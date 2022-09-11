@@ -117,18 +117,7 @@ struct Author* GetFromMap (struct Author** map, int mapLength, const char* name)
 void PutIntoMap (struct Author** map, int mapLength, struct Author* author) {
 
     // printf ("Putting %s into map...\n", author->name);
-
-    int hash = 0;
-
-    for (int i = 0; i < strlen(author->name); i++)
-    {
-        hash += author->name[i];
-    }
-
-    hash %= mapLength;
-
-    // printf ("Hash = %d\n", hash);
-    
+        
     int index = GetNextFreeSlotIndex (map, mapLength, author);
 
     // printf ("Index = %d\n", index);
