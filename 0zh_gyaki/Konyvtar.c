@@ -162,9 +162,9 @@ void CountByAuthorAndPrint (struct Book* books, int length) {
     {
         // printf ("Processing book... (%s - %s)\n", books[i].author, books[i].title);
 
-        struct Author* authorInHash = GetFromMap (map, length, books[i].author);
+        struct Author* authorFromMap = GetFromMap (map, length, books[i].author);
 
-        if (authorInHash == NULL) {
+        if (authorFromMap == NULL) {
             // create new and add to the map
             struct Author* author = malloc(sizeof (struct Author));
 
@@ -174,7 +174,7 @@ void CountByAuthorAndPrint (struct Book* books, int length) {
             PutIntoMap (map, length, author);
         }
         else {
-            authorInHash->count += books[i].count;
+            authorFromMap->count += books[i].count;
         }
     }
     
