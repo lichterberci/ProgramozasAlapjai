@@ -29,6 +29,7 @@
     "**/.vscode/**"
   ],
   "files.associations": {
-    "typeinfo": "c"
+    "typeinfo": "c",
+    "limits": "c"
   }
 }
