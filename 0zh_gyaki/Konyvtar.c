@@ -116,7 +116,7 @@ struct Author* GetFromMap (struct Author** map, int mapLength, const char* name)
 
 void PutIntoMap (struct Author** map, int mapLength, struct Author* author) {
 
-    // // printf ("Putting %s into map...\n", author->name);
+    // printf ("Putting %s into map...\n", author->name);
 
     int hash = 0;
 
@@ -149,11 +149,14 @@ void CountByAuthorAndPrint (struct Book* books, int length) {
 
     struct Author** map = malloc(sizeof (struct Author) * length);
 
+    // init map with 0s
+
     for (int i = 0; i < length; i++)
     {
         map[i] = NULL;
     }
-    
+
+    // read the book array
 
     for (int i = 0; i < length; i++)
     {
@@ -175,7 +178,7 @@ void CountByAuthorAndPrint (struct Book* books, int length) {
         }
     }
     
-    // print
+    // print and free memory
 
     for (int i = 0; i < length; i++)
     {
@@ -196,7 +199,7 @@ int main (void) {
     struct Book b1 = {
         "J.R.R Tolkien",
         "Lord of the Rings",
-        1951,
+        1954,
         0,
         500
     };
@@ -204,7 +207,7 @@ int main (void) {
     struct Book b2 = {
         "J.K.Rowling",
         "Harry Potter",
-        1978,
+        1999,
         1,
         1500
     };
@@ -220,7 +223,7 @@ int main (void) {
     struct Book b4 = {
         "J.K.Rowling",
         "Harry Potter 2",
-        1994,
+        2000,
         3,
         1500    
     };
@@ -228,7 +231,7 @@ int main (void) {
     struct Book b5 = {
         "J.K.Rowling",
         "Harry Potter 3",
-        1995,
+        2001,
         4,
         3500
     };
