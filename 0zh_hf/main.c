@@ -174,7 +174,7 @@ void ComplicatedFunction (const char* fileName, const char* name) {
 
 int main (void) {
 
-    ComplicatedFunction ("test.txt", "Al Bert");
+    ComplicatedFunction ("GroundFloor.txt", "Al Bert");
 
     return 0;
 
