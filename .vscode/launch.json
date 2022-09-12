@@ -8,8 +8,8 @@
       "args": [],
       "stopAtEntry": false,
       "externalConsole": true,
-      "cwd": "e:/ProgramozasAlapjai/ProgramozasAlapjai/0zh_hf",
-      "program": "e:/ProgramozasAlapjai/ProgramozasAlapjai/0zh_hf/build/Debug/outDebug",
+      "cwd": "e:/ProgramozasAlapjai/ProgramozasAlapjai",
+      "program": "e:/ProgramozasAlapjai/ProgramozasAlapjai/build/Debug/outDebug",
       "MIMode": "gdb",
       "miDebuggerPath": "gdb",
       "setupCommands": [
