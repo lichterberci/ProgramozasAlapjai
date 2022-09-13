@@ -57,13 +57,65 @@ double CalculateSqrt (double lower, double upper, int n, int prec) {
     return (lower + upper) / 2;
 }
 
-int main (void) {
+void RomanNumerals () {
 
-    printf ("n = ");
+    printf ("N = ");
     int n;
     scanf ("%d", &n);
-    double res = CalculateSqrt (0, 1 << 30, n, 8);
-    printf ("%.8lf\n", res);
+    if (n < 0 || n >= 100) {
+        fprintf (stderr, "Number not in range");
+        return;
+    }
+
+    char result[50];
+    int index = 0;
+
+    if ((n / 100) == 90) {
+        result[index++] = 'X';
+        result[index++] = 'C';
+    } 
+    else if ((n / 50) == 1 && (n / 10) != 9)
+        result[index++] = 'L';
+    else if ((n / 10) == 4) {
+        result[index++] = 'X';
+        result[index++] = 'L';
+    } 
+
+    if (((n % 50) / 10) >= 1 && ((n % 50) / 10) < 4) {
+        for (int i = 0; i < n / 10; i++)
+        {
+            result[index++] = 'X';
+        }    
+    }
+
+    if ((n % 10) == 9) {
+        result[index++] = 'I';
+        result[index++] = 'X';
+    }
+    else if ((n % 10) >= 5) {
+        result[index++] = 'V';
+    }
+    else if ((n % 10) == 4) {
+        result[index++] = 'I';
+        result[index++] = 'V';
+    }
+
+    if ((n % 5) < 4) {
+        for (int i = 0; i < (n % 5); i++)
+        {
+            result[index++] = 'I';
+        }
+    }
+    
+    printf ("%s\n", result);
+
+}
+
+int main (void) {
+
+    while (1) {
+        RomanNumerals ();
+    }
     
     return 0;
 };
