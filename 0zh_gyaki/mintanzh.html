@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="hu" class="no-js">
+
+<head>
+<meta charset="utf-8">
+<title>InfoC :: Minta nagy ZH</title>
+<meta property="og:title" content="InfoC :: Minta nagy ZH">
+<meta property="og:image" content="/modulz/logo-sapi.png">
+<meta property="og:description" content="Minta nagy ZH, előző évek feladataiból összeollózva.">
+<meta property="og:site_name" content="InfoC – Programozás alapjai I.">
+<meta name="description" content="Minta nagy ZH, előző évek feladataiból összeollózva.">
+<meta name="keywords" content="bme eet infoc programozás prog1 szoftlab1">
+<meta name="robots" content="noarchive">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="shortcut icon" href="modulz/favicon.ico" id="faviconhref">
+<link rel="apple-touch-icon" href="modulz/logo_touch.png">
+<link rel="image_src" href="modulz/logo-sapi.png"> 
+<script>var infoc = { onloads: [], onresize: [] };</script>
+<link rel="stylesheet" href="modulz/style/style-vik.css@v14.css">
+<link rel="stylesheet" href="modulz/style/localfonts.css@v14.css">
+<script src="modulz/siteui.js@v14"></script>
+</head>
+
+<body class="doksibody">
+<!--[if lt IE 9]>
+<blockquote><p>A régi Internet Explorer böngésző, amit használsz, nem támogatott!
+Az oldal használatához keress egy <a href="http://browsehappy.com/">jobb, újabb böngészőprogramot</a>!</p></blockquote>
+<![endif]-->
+<div id="bodycontent">
+
+<nav role="navigation">
+<div id="menubg">
+<div id="menu" class="shaper dropdown">
+<div class="infoc"><a href="https://infoc.eet.bme.hu/">InfoC</a></div>
+</div>
+</div>
+</nav>
+
+<main role="main">
+<div id="doksi" class="shaper">
+<section id="0">
+<div class="slide" id="slide_0">
+<h1 class="eloadascim">Minta nagy ZH</h1>
+<div class="focim">
+<p class="szerzocim"><i class="szerzo"></i> Czirkos Zoltán · <i class="ido"></i> 2015.10.25</p>
+<p class="kivonat">Minta nagy ZH, előző évek feladataiból összeollózva.</p>
+</div>
+
+<p>Minta nagy ZH, néhány előző évekből származó feladatból összeállítva. Ez <em>minta</em>.
+Egy-két tudnivaló a feladatsor felhasználásával kapcsolatban: 
+<a href="tanacsok.html">lásd itt</a>.
+Nem minden évben ugyanakkor volt az első NZH, nem minden évben pont
+ugyanaddig terjedt az első NZH anyaga.</p>
+
+
+
+<h3>1. Dátumok</h3>
+
+<p>A programunknak háromféle formátumban írt dátumot kell kezelnie: (a) 'éé.hh.nn, (b) éééé.hh.nn és (c) nn.hh.éééé 
+formátumokat. Az (a)-nak aposztróf van az elején; továbbá ha a megadott kétjegyű év kisebb, mint 50, akkor a 2000-esekről 
+beszélünk (pl. '12 = 2012), ha nagyobb vagy egyenlő, akkor az 1900-asokról (pl. '95 = 1995). A (b) és (c) formátumban biztosan 
+négy számjeggyel van írva az év. Írj függvényt, amelynek első paramétere egy sztring, amely a fentiek közül valamelyik formában 
+egy dátumot tartalmaz; a második paramétere pedig egy másik sztring, amelybe a dátumot „normalizálva”, éééé.hh.nn. formátumban 
+kell írja! Írj rövid programrészt, amelyben kiírod normalizálva az alábbi dátumokat: '97.12.31, 29.10.2012, 2012.09.03.</p>
+
+<div class="tovabb ">
+<h4><a onclick="tovabb_megnyit_bezar(this);">Megoldás</a></h4>
+<div class="megjelenik csik">
+<pre class="brush: c "  >
+#include &lt;stdio.h&gt;
+
+void datum(char *in, char *out) {
+    int ev, honap, nap;
+
+    if (in[0]=='\'') {
+        sscanf(in+1, &quot;%d.%d.%d&quot;, &amp;ev, &amp;honap, &amp;nap);
+        if (ev&lt;50)
+            ev+=2000;
+        else
+            ev+=1900;
+    } else {
+        sscanf(in, &quot;%d.%d.%d&quot;, &amp;ev, &amp;honap, &amp;nap);
+        if (ev&lt;=31) { /* ha a nap lenne elöl, kicsi szám lesz */
+            int tmp = ev;
+            ev = nap;
+            nap = tmp;
+        }
+    }
+    sprintf(out, &quot;%04d.%02d.%02d.&quot;, ev, honap, nap);
+}
+
+/* kódrész */
+char res[20];
+datum(&quot;'97.12.31&quot;, res); printf(&quot;%s\n&quot;, res);
+datum(&quot;29.10.2012&quot;, res); printf(&quot;%s\n&quot;, res);
+datum(&quot;2012.9.3&quot;, res); printf(&quot;%s\n&quot;, res);   /* ezt is eszi */</pre>
+</div>
+</div>
+
+
+
+
+
+<h3>2. Prímszámok</h3>
+
+<p>Írj C programot, amely pozitív egész számokat kér be a felhasználótól! A számsorozat végét 0 jelzi. (A 0 után még érkezhet 
+egyéb adat a bemeneten, de ezt a program már ne dolgozza fel!) Garantált, hogy a felhasználó maximum ezer darab számot ad meg a 0
+előtt. A program írja ki az összes, a számok átlagánál kisebb beolvasott prímszámot a beolvasás sorrendjével ellentétes 
+sorrendben! Az átlagszámításba a sorozat végét jelző 0 ne számítson bele!</p>
+
+<div class="tovabb ">
+<h4><a onclick="tovabb_megnyit_bezar(this);">Megoldás</a></h4>
+<div class="megjelenik csik">
+<pre class="brush: c "  >
+#include &lt;stdio.h&gt;
+
+int prim(unsigned szam) {
+    unsigned oszto;
+    for (oszto=2; oszto&lt;szam; oszto++) {
+        if (szam % oszto == 0)
+            return 0;
+    }
+    return 1;
+}
+
+double atlag(unsigned *tomb, int meret) {
+    double sum=0.0;
+    int i;
+    for (i=0; i&lt;meret; i++)
+        sum += tomb[i];
+    return sum/meret;
+}
+
+int main(void) {
+    unsigned tomb[1000], szam;
+    int db, i;
+    double atl;
+
+    db=0;
+    scanf(&quot;%u&quot;, &amp;szam);
+    while (szam!=0) {
+        tomb[db++]=szam;
+        scanf(&quot;%u&quot;, &amp;szam);
+    }
+    atl=atlag(tomb,db);
+    for (i=db-1; i&gt;=0; i--)
+        if (tomb[i]&lt;atl &amp;&amp; prim(tomb[i]))
+            printf(&quot;%u\n&quot;,tomb[i]);
+    return 0;
+}</pre>
+</div>
+</div>
+
+
+
+
+<h3>3. Könyvtár</h3>
+
+<p>Definiálj adattípust könyvtári könyvek adatainak tárolására! A tárolandó adatok: szerző (max. 30 karakter), cím (50), azonosító (egész szám), kiadás éve (egész), darabszám (egész).</p>
+<p>Írj függvényt, amely paraméterként vesz át egy könyvtári könyvek adatait tartalmazó, fenti típusú elemekből álló tömböt, és rendezi azt szerző szerinti ABC sorrendbe!</p>
+<p>Írj függvényt, amely paraméterként vesz át egy könyvtári könyvek adatait tartalmazó, fenti módon rendezett tömböt, és a szabványos kimenetre írja, hogy egy szerzőtől hány könyve van a könyvtárnak! Egy szerző neve csak egyszer szerepeljen a kiírt listában!</p>
+
+<div class="tovabb ">
+<h4><a onclick="tovabb_megnyit_bezar(this);">Megoldás</a></h4>
+<div class="megjelenik csik">
+<pre class="brush: c "  >
+typedef struct {
+   char szerzo[30+1];
+   char cim[50+1];
+   int azonosito, kiadas, db;
+} konyv;
+
+void rendez(konyv *t, int n) {
+   int i, j, min;
+   for (i = 0; i &lt; n; i++) {
+       min = i;
+       for (j = i+1; j &lt; n; j++)
+           if (strcmp( t[j].szerzo, t[min].szerzo ) &lt; 0)
+               min = j;
+       if (i != min) {
+          konyv temp = t[min];
+          t[min] = t[i];
+          t[i] = temp;
+       }
+   }
+}
+
+void kiir(konyv *t, int n) {
+   int i, db;
+   for (i = db = 0; i &lt; n; i++) {
+       if (i == n - 1 || strcmp(t[i].szerzo,t[i+1].szerzo) != 0) {
+           printf(&quot;%s: %d db\n&quot;,t[i].szerzo, t[i].db + db );
+           db = 0;
+       }
+       else db += t[i].db;
+   }
+}</pre>
+</div>
+</div>
+
+
+
+
+<h3>4. Palindrom</h3>
+
+<p>Írj C függvényt, amely megvizsgálja a paramétereként kapott sztringet, hogy az palindrom-e! A visszatérési értéke logikai igaz kell legyen, ha a sztring visszafelé olvasva, csak a benne szereplő számjegyeket és angol betűket figyelembe véve, valamint eltekintve azok kis- illetve nagybetűs voltától, ugyanaz, mint előrefelé; egyéb esetben pedig hamis.</p>
+<p>Írj rövid főprogramot, amely beolvas egy legfeljebb 80 karakterből álló sort, és kiírja, hogy palindrom-e! Pl. palindrom: “Keresik a tavat a kis erek.”</p>
+
+<div class="tovabb ">
+<h4><a onclick="tovabb_megnyit_bezar(this);">Megoldás</a></h4>
+<div class="megjelenik csik">
+<pre class="brush: c "  >
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+#include &lt;ctype.h&gt;
+
+/* két praktikus megoldás:
+     (1) másolat a kihagyandók nélkül, és egyszerű összehasonlítás (mint a gyakon) 
+     (2) szétválogatás tétele cserék nélkül (ügyesebb módszer; lásd lent) */
+int palindrom(char const *str) {
+    int eleje=0;
+    int vege=strlen(str)-1;
+    int pali=1;
+    while (pali &amp;&amp; eleje&lt;vege) {
+        while (eleje&lt;vege &amp;&amp; !isalnum(str[eleje]))
+            eleje++;
+        while (eleje&lt;vege &amp;&amp; !isalnum(str[vege]))
+            vege--;
+        if (eleje&lt;vege)
+            if (toupper(str[eleje]) != toupper(str[vege]))
+                pali=0;
+        eleje++;
+        vege--;
+    }
+  
+    return pali;
+}
+
+int main(void) {
+    char sor[80+1];
+    gets(sor);
+    printf(&quot;%s\n&quot;, palindrom(sor) ? &quot;Palindrom.&quot; : &quot;Nem palindrom.&quot;);
+    return 0;
+}</pre>
+</div>
+</div>
+
+<nav><div id="tartalom"></div></nav>
+</div>
+</section>
+</div>
+</main>
+
+<nav role="navigation">
+<a href="mintanzh.html#menu" id="scrolltotop"></a>
+</nav>
+
+<footer role="contentinfo">
+<div id="footer" class="shaper">
+<a href="https://infoc.eet.bme.hu/"><img src="modulz/logo-sapi.png" id="footerlogo" alt="Logo"></a>
+<div>InfoC – Programozás alapjai I.</div>
+<div class="csakkepernyon"><a href="https://infoc.eet.bme.hu/">főoldal</a> · <a href="elerhetoseg.html">elérhetőség</a> · <a href="elerhetoseg.html#licensz">licensz</a> · <a href="https://www.facebook.com/infoceetbmehu">facebook</a></div>
+<div class="csaknyomtatasban">Kérjük, az oldalak kinyomtatása előtt gondolj a környezetre.</div>
+BME EET, 2009-2015.</div>
+</footer>
+
+</div>
+</body>
+
+</html>
