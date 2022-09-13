@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <math.h>
 
 void Piramis () {
 
@@ -34,12 +35,35 @@ void PrintPrimes (int n) {
     }
 }
 
+double CalculateSqrt (double lower, double upper, int n, int prec) {
+
+    // implement Newtonian algorithm
+
+    while ((upper - lower) > pow(10, -prec)) {
+
+        double avg = (lower + upper) / 2;
+
+        double sqr = avg * avg;
+
+        if (sqr > n) {
+            // adjust upper bound
+            upper = avg;
+        } else {
+            // adjust lower bound
+            lower = avg;
+        }
+    }
+
+    return (lower + upper) / 2;
+}
+
 int main (void) {
 
     printf ("n = ");
     int n;
     scanf ("%d", &n);
-    PrintPrimes (n);
+    double res = CalculateSqrt (0, 1 << 30, n, 8);
+    printf ("%.8lf\n", res);
     
     return 0;
 };
