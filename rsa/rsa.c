@@ -4,6 +4,9 @@
 #include "time.h"
 #include "stdint.h"
 #include "stdbool.h"
+#include "string.h"
+
+static int log_level = 0;
 
 bool OverFlowDanger (uint64_t a, uint64_t b) {
 
@@ -12,16 +15,22 @@ bool OverFlowDanger (uint64_t a, uint64_t b) {
 
     for (uint8_t i = 0; i < 64; i++)
     {
-        if ((a & (1 << i)) == 1) log_a = i;
-        if ((b & (1 << i)) == 1) log_b = i;
+        if ((a & (1LL << i)) != 0) log_a = i;
+        if ((b & (1LL << i)) != 0) log_b = i;
     }
     
+    if (log_a + log_b >= 64) {
+        if (log_level >= 1)
+            printf("[WARNING] Overflow danger logs: a=0x%016llx, b=0x%016llx, log_a=%lld, log_b=%lld\n", a, b, log_a, log_b);
+    }
+
     return log_a + log_b >= 64;
 }
 
 uint64_t PowMod (uint64_t base, uint64_t exponent, uint64_t modulo) {
 
-    printf("[LOG] Calculating %lld ^ %lld mod %lld...\n", base, exponent, modulo);
+    if (log_level >= 2)
+        printf("[LOG] Calculating %lld ^ %lld mod %lld...\n", base, exponent, modulo);
 
     uint64_t result = 1;
 
@@ -30,10 +39,11 @@ uint64_t PowMod (uint64_t base, uint64_t exponent, uint64_t modulo) {
     for (uint64_t i = 0; i < 16; i++)
     {
 
-        if ((exponent & (1 << i)) != 0) {
+        if ((exponent & (1LL << i)) != 0) {
 
             if (OverFlowDanger(result, _base)) {
-                printf("[WARNING] Overflow danger when multiplying! (result=%lld exponent=%lld)\n", result, exponent);
+                if (log_level >= 1)
+                    printf("[WARNING] Overflow danger when multiplying! (result=%lld exponent=%lld)\n", result, exponent);
             }
 
             result = (result * _base) % modulo;
@@ -47,7 +57,8 @@ uint64_t PowMod (uint64_t base, uint64_t exponent, uint64_t modulo) {
 
 uint64_t GCD (uint64_t a, uint64_t b) {
 
-    printf("[LOG] Calculating GCD of %lld and %lld...\n", a, b);
+    if (log_level >= 2)
+        printf("[LOG] Calculating GCD of %lld and %lld...\n", a, b);
 
     while (b > 0) {
 
@@ -67,7 +78,8 @@ bool IsPrime (uint64_t n) {
 
     uint16_t a;
 
-    printf("[LOG] Checking wether %lld is prime...\n", n);
+    if (log_level >= 2)
+        printf("[LOG] Checking wether %lld is prime...\n", n);
 
     for (int i = 0; i < 100; i++) {    
 
@@ -118,7 +130,8 @@ uint64_t GetPrime(uint8_t maxPower) {
         
         result &= mask;
 
-        printf("[LOG] Trying potential prime %lld...\n", result);
+        if (log_level >= 2)
+            printf("[LOG] Trying potential prime %lld...\n", result);
 
     } while (IsPrime(result) == false);
 
@@ -146,7 +159,8 @@ uint64_t GetRandomCoprime (uint64_t m, int maxPower) {
         
         result &= mask;
 
-        printf("[LOG] Trying potential coprime %lld (to %lld)...\n", result, m);
+        if (log_level >= 2)
+            printf("[LOG] Trying potential coprime %lld (to %lld)...\n", result, m);
 
     } while (GCD(result, m) != 1);
 
@@ -194,8 +208,23 @@ uint64_t SolveForD (uint64_t c, uint64_t m) {
     return 0;
 }
 
-int main () {
+int main (int argc, char* argv[]) {
 
+    if (argc >= 3) {
+        if (strcmp (argv[1], "-log-level") == 0) {
+            log_level = atoi (argv[2]);
+        }
+    } else if (argc == 2) {
+        if (strcmp (argv[1], "--verbose") == 0) {
+            log_level = 2;
+        } else if (strcmp (argv[1], "--warning") == 0) {
+            log_level = 1;
+        } else if (strcmp (argv[1], "--error") == 0) {
+            log_level = 0;
+        }
+    } else {
+        log_level = 0;
+    }
 
     // perform RSA
 
@@ -218,7 +247,7 @@ int main () {
 
     char x2 = PowMod (y, d, N);
 
-    printf("\n-----------------------VARIABLES------------------\n\n");
+    printf("-----------------------VARIABLES------------------\n");
 
     printf("p: %lld\n", p);
     printf("q: %lld\n", q);
@@ -229,13 +258,13 @@ int main () {
     printf("y = %lld ^ %lld mod %lld\n", x, c, N);
     printf("y: %lld\n", y);
 
-    printf("%lld * d === 1 (mod %lld)\n", c, m);
+    printf("%lld * d = 1 (mod %lld)\n", c, m);
     printf("d: %lld\n", d);
 
     printf("x2 = %lld ^ %lld mod %lld\n", y, d, N);
     printf("x2: %d\n", x2);
 
-    printf("\n------------------------RSEULTS-------------------\n\n");
+    printf("------------------------RESULTS-------------------\n");
 
     printf("The original message: '%c' (%d)\n", x, x);
     printf("The decrypted message: '%c' (%d)\n", x2, x2);
