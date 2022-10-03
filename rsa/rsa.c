@@ -25,10 +25,10 @@ bool OverFlowDanger (uint64_t a, uint64_t b) {
             printf("[WARNING] Overflow danger logs: a=0x%016llx, b=0x%016llx, log_a=%lld, log_b=%lld\n", a, b, log_a, log_b);
     }
 
-    if (a > (1LL << 20) && log_level >= 1)
-        printf("[WARNING] Potentially dangerous product! log %llx = %d\n", a, log_a);
-    if (b > (1LL << 20) && log_level >= 1)
-        printf("[WARNING] Potentially dangerous product! log %llx = %d\n", b, log_b);
+    // if (a > (1LL << 20) && log_level >= 1)
+    //     printf("[WARNING] Potentially dangerous product! log %llx = %d\n", a, log_a);
+    // if (b > (1LL << 20) && log_level >= 1)
+    //     printf("[WARNING] Potentially dangerous product! log %llx = %d\n", b, log_b);
 
     return log_a + 1 + log_b + 1 >= 64;
 }
@@ -49,7 +49,7 @@ uint64_t PowMod (uint64_t base, uint64_t exponent, uint64_t modulo) {
 
             if (OverFlowDanger(result, _base)) {
                 if (log_level >= 1)
-                    printf("[WARNING] Overflow danger when multiplying! (result=%lld exponent=%lld)\n", result, exponent);
+                    printf("[WARNING] (PowMod) Overflow danger when multiplying! (result=%lld exponent=%lld)\n", result, exponent);
             }
 
             result = (result * _base) % modulo;
@@ -57,7 +57,7 @@ uint64_t PowMod (uint64_t base, uint64_t exponent, uint64_t modulo) {
 
         if (OverFlowDanger(_base, _base)) {
             if (log_level >= 1)
-                printf("[WARNING] Overflow danger when multiplying! (result=%lld exponent=%lld)\n", result, exponent);
+                printf("[WARNING] (PowMod) Overflow danger when multiplying! (result=%lld exponent=%lld)\n", result, exponent);
         }
 
         _base = (_base * _base) % modulo;
@@ -199,6 +199,13 @@ uint64_t SolveForD (uint64_t c, uint64_t m) {
         // - a2*d === e2 (m)
         // =================
         //   a_t*d === e_t (m)
+
+        if (OverFlowDanger(e2, (a1 / a2))) {
+            if (log_level >= 1)
+                printf("[WARNING] (SolveForD) Product can lead to overflow!\n"
+                "a=0x%016llx\n"
+                "b=0x%016llx\n", e2, (a1 / a2));
+        }
 
         a_temp = a1 % a2;
         e_temp = e1 - e2 * (a1 / a2);
