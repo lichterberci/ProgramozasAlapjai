@@ -7,6 +7,7 @@
 #include "string.h"
 
 static int log_level = 0;
+static int max_bits = 8;
 
 bool OverFlowDanger (uint64_t a, uint64_t b) {
 
@@ -15,16 +16,21 @@ bool OverFlowDanger (uint64_t a, uint64_t b) {
 
     for (uint8_t i = 0; i < 64; i++)
     {
-        if ((a & (1LL << i)) != 0) log_a = i;
-        if ((b & (1LL << i)) != 0) log_b = i;
+        if ((a & (1LL << i)) != 0) log_a = i + 1;
+        if ((b & (1LL << i)) != 0) log_b = i + 1;
     }
     
-    if (log_a + log_b >= 64) {
+    if (log_a + 1 + log_b + 1 >= 64) {
         if (log_level >= 1)
             printf("[WARNING] Overflow danger logs: a=0x%016llx, b=0x%016llx, log_a=%lld, log_b=%lld\n", a, b, log_a, log_b);
     }
 
-    return log_a + log_b >= 64;
+    if (a > (1LL << 20) && log_level >= 1)
+        printf("[WARNING] Potentially dangerous product! log %llx = %d\n", a, log_a);
+    if (b > (1LL << 20) && log_level >= 1)
+        printf("[WARNING] Potentially dangerous product! log %llx = %d\n", b, log_b);
+
+    return log_a + 1 + log_b + 1 >= 64;
 }
 
 uint64_t PowMod (uint64_t base, uint64_t exponent, uint64_t modulo) {
@@ -47,6 +53,11 @@ uint64_t PowMod (uint64_t base, uint64_t exponent, uint64_t modulo) {
             }
 
             result = (result * _base) % modulo;
+        }
+
+        if (OverFlowDanger(_base, _base)) {
+            if (log_level >= 1)
+                printf("[WARNING] Overflow danger when multiplying! (result=%lld exponent=%lld)\n", result, exponent);
         }
 
         _base = (_base * _base) % modulo;
@@ -210,9 +221,20 @@ uint64_t SolveForD (uint64_t c, uint64_t m) {
 
 int main (int argc, char* argv[]) {
 
+    if (argc >= 5) {
+        if (strcmp (argv[3], "-log-level") == 0) {
+            log_level = atoi (argv[4]);
+        }
+        else if (strcmp(argv[3], "-max-bits") == 0) {
+            max_bits = atoi (argv[4]);
+        }
+    }
     if (argc >= 3) {
         if (strcmp (argv[1], "-log-level") == 0) {
             log_level = atoi (argv[2]);
+        }
+        else if (strcmp(argv[1], "-max-bits") == 0) {
+            max_bits = atoi (argv[2]);
         }
     } else if (argc == 2) {
         if (strcmp (argv[1], "--verbose") == 0) {
@@ -228,16 +250,16 @@ int main (int argc, char* argv[]) {
 
     // perform RSA
 
-    const int maxPower = 8;
+    printf("max_bits: %d\n", max_bits);
 
     srand(time(NULL));
 
-    uint64_t p = GetPrime(maxPower);
-    uint64_t q = GetPrime(maxPower);
+    uint64_t p = GetPrime(max_bits);
+    uint64_t q = GetPrime(max_bits);
     uint64_t N = p * q;
     uint64_t m = (p - 1) * (q - 1);
 
-    uint64_t c = GetRandomCoprime(m, maxPower);
+    uint64_t c = GetRandomCoprime(m, max_bits);
 
     char x = 'a';
 
