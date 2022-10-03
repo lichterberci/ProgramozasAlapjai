@@ -99,14 +99,14 @@ void StepProgram (char c, char* data, char* program, short int* dataPtr, unsigne
 
     (*programPtr)++; // we step the program ptr forward, so we don't read the same char every single step 
 
-};
+}
 
 int main () {
 
     // char programkod[] ="[ThisprogramprintsSierpinskitriangleon80-columndisplay.]>++++[<++++++++>-]>++++++++[>++++<-]>>++>>>+>>>+<<<<<<<<<<[-[->+<]>[-<+>>>.<<]>>>[[->++++++++[>++++<-]>.<<[->+<]+>[->++++++++++<<+>]>.[-]>]]+<<<[-[->+<]+>[-<+>>>-[->+<]++>[-<->]<<<]<<<<]++++++++++.+++.[-]<]+++++*****Made*By:*NYYRIKKI*2002*****";
 
     // Bertalan (keresztnév)
-    char programkod[] = "Ez a program kiírja a becenevem (Bertalan) ++++[++++>---<]>-.[-->+++<]>++.+++++++++++++.++.+[->+++<]>++.+++++++++++.-----------.+++++++++++++.";
+    char programkod[] = "Ez a program kiírja a keresztnevem (Bertalan) ++++[++++>---<]>-.[-->+++<]>++.+++++++++++++.++.+[->+++<]>++.+++++++++++.-----------.+++++++++++++.";
 
     char data[2 << 15] = {0};
     short int dataPtr = 0;
