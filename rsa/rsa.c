@@ -90,7 +90,7 @@ bool IsPrime (uint64_t n) {
     uint16_t a;
 
     if (log_level >= 2)
-        printf("[LOG] Checking wether %lld is prime...\n", n);
+        printf("[LOG] Checking if %lld is prime...\n", n);
 
     for (int i = 0; i < 100; i++) {    
 
@@ -102,7 +102,6 @@ bool IsPrime (uint64_t n) {
             a |= (uint64_t)rand() << 32;    
         if ((n & 0x0000FF00) > 0)
             a |= (uint64_t)rand() << 16;
-
         a |= rand();
 
         if (a >= n) {
@@ -202,9 +201,11 @@ uint64_t SolveForD (uint64_t c, uint64_t m) {
 
         if (OverFlowDanger(e2, (a1 / a2))) {
             if (log_level >= 1)
-                printf("[WARNING] (SolveForD) Product can lead to overflow!\n"
-                "a=0x%016llx\n"
-                "b=0x%016llx\n", e2, (a1 / a2));
+                printf(
+                    "[WARNING] (SolveForD) Product can lead to overflow!\n"
+                    "a=0x%016llx\n"
+                    "b=0x%016llx\n",
+                e2, (a1 / a2));
         }
 
         a_temp = a1 % a2;
