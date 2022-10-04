@@ -25,13 +25,13 @@ public:
         m_data[3] = ((n & 0xFF000000) >> 24);        
     }
 
-    Number(const int _size, const std::vector<uint8_t>& _data)
-        : m_size(m_size) {
+    Number (const int _size, const std::vector<uint8_t>& _data) 
+    : m_size(m_size) { 
         m_data.resize(_size);
         m_data = _data;
     }
 
-    const int GetSize() const { return m_size; }
+    const int GetSize () const { return m_size; }
 
     const std::string ToString() const {
         std::stringstream outputStream;
@@ -39,7 +39,7 @@ public:
         {
             outputStream << std::hex << (uint16_t)m_data[i];
         }        
-        return outputStream.str();
+        return outputStream.str();        
     }
 
     bool operator==(const Number& right) {
@@ -96,7 +96,7 @@ std::ostream& operator<<(std::ostream& out, const Number& right) {
     return out << right.ToString();
 }
 
-int main(int argc, char** argv) {
+int main (int argc, char **argv) {
 
     std::cout << "Hello, RSA!" << std::endl;
 
