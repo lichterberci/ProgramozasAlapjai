@@ -13,14 +13,16 @@ protected:
     int m_size;
     std::vector<uint8_t> m_data;
 public:
+
     Number (const uint64_t n)
     : m_size(4)
     { 
         m_data = std::vector<uint8_t>(4);
-        m_data.push_back((n && 0x000000FF));
-        m_data.push_back((n && 0x0000FF00) >> 8);
-        m_data.push_back((n && 0x00FF0000) >> 16);
-        m_data.push_back((n && 0xFF000000) >> 24);
+
+        m_data[0] = ((n & 0x000000FF));
+        m_data[1] = ((n & 0x0000FF00) >> 8);
+        m_data[2] = ((n & 0x00FF0000) >> 16);
+        m_data[3] = ((n & 0xFF000000) >> 24);        
     }
 
     Number (const int _size, const std::vector<uint8_t>& _data) 
@@ -31,18 +33,12 @@ public:
 
     const int GetSize () const { return m_size; }
 
-    void PrintHex() {
-        std::cout << std::hex;
-        for (uint8_t& i : m_data)
-            std::cout << i;
-        std::cout << std::dec << std::endl;
-    }
-
-    std::string ToString() {
+    const std::string ToString() const {
         std::stringstream outputStream;
-        outputStream << std::hex;
-        for (uint8_t& i : m_data)
-            outputStream << (uint16_t)i;
+        for (int i = m_size - 1; i >= 0; i--)
+        {
+            outputStream << std::hex << (uint16_t)m_data[i];
+        }        
         return outputStream.str();        
     }
 
@@ -63,44 +59,55 @@ public:
     }
 
     const uint8_t& operator[] (int i) const {
-        // assert(i >= 0 && i <= m_size);
         return m_data[i];
     }
 
-    const Number& operator= (const Number& right) const {
-        return Number(right.m_size, right.m_data);
+    // copy
+    Number& operator= (const Number& right) {
+        m_data = std::vector<uint8_t>(right.m_data);
+        m_size = right.m_size;
+        return *this;
     }
 
-    const Number& operator+ (const Number& right) const {
+    friend Number operator+ (Number& left, const Number& right) {
         
-        int resultSize = std::max(right.m_size, m_size) + 1;
+        int resultSize = std::max(right.m_size, left.m_size) + 1;
         std::vector<uint8_t> resultData;
 
         uint8_t carry = 0;
         for (int i = 0; i < resultSize; i++) {
-            uint8_t a = i < m_size ? m_data[i] : 0;
+
+            uint8_t a = i < left.m_size ? left.m_data[i] : 0;
             uint8_t b = i < right.m_size ? right.m_data[i] : 0;
+
             uint16_t sum = a + b + carry;
+
             carry = sum / 256;
             sum %= 256;
-            resultData.push_back((uint8_t)sum);
-        }
 
-        return Number(resultSize, resultData);
+            resultData.push_back((uint8_t)sum);
+        }        
+
+        return Number (resultSize, resultData);
     }
 };
 
+std::ostream& operator<<(std::ostream& out, const Number& right) {
+    return out << right.ToString();
+}
 
 int main (int argc, char **argv) {
 
     std::cout << "Hello, RSA!" << std::endl;
 
-    Number n(4);
-    Number m(5);
-    std::cout << (uint16_t)n[0] << (uint16_t)n[1] << (uint16_t)n[2] << (uint16_t)n[3] << std::endl;
+    Number n(256);
+    Number m(256);
+    std::cout << "n: " << n << std::endl;
+    std::cout << "m: " << m << std::endl;
+    std::cout << "n + m: " << n + m << std::endl;
     Number r = n + m;
-    std::cout << r.ToString() << std::endl;
-
+    std::cout << r.GetSize() << std::endl;
+    std::cout << r << std::endl;
     return 0;
 }
 
