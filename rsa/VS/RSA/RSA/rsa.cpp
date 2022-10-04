@@ -13,9 +13,9 @@ protected:
     int m_size;
     std::vector<uint8_t> m_data;
 public:
-    Number (const uint64_t n)
-    : m_size(4)
-    { 
+    Number(const uint64_t n)
+        : m_size(4)
+    {
         m_data = std::vector<uint8_t>(4);
         m_data.push_back((n && 0x000000FF));
         m_data.push_back((n && 0x0000FF00) >> 8);
@@ -23,13 +23,13 @@ public:
         m_data.push_back((n && 0xFF000000) >> 24);
     }
 
-    Number (const int _size, const std::vector<uint8_t>& _data) 
-    : m_size(m_size) { 
+    Number(const int _size, const std::vector<uint8_t>& _data)
+        : m_size(m_size) {
         m_data.resize(_size);
         m_data = _data;
     }
 
-    const int GetSize () const { return m_size; }
+    const int GetSize() const { return m_size; }
 
     void PrintHex() {
         std::cout << std::hex;
@@ -43,7 +43,7 @@ public:
         outputStream << std::hex;
         for (uint8_t& i : m_data)
             outputStream << (uint16_t)i;
-        return outputStream.str();        
+        return outputStream.str();
     }
 
     bool operator==(const Number& right) {
@@ -72,7 +72,7 @@ public:
     }
 
     const Number& operator+ (const Number& right) const {
-        
+
         int resultSize = std::max(right.m_size, m_size) + 1;
         std::vector<uint8_t> resultData;
 
@@ -91,7 +91,7 @@ public:
 };
 
 
-int main (int argc, char **argv) {
+int main(int argc, char** argv) {
 
     std::cout << "Hello, RSA!" << std::endl;
 
