@@ -1,3 +1,0 @@
-﻿  rsa.cpp
-E:\ProgramozasAlapjai\ProgramozasAlapjai\rsa\VS\RSA\RSA\rsa.cpp(89): warning C4172: returning address of local variable or temporary
-  RSA.vcxproj -> E:\ProgramozasAlapjai\ProgramozasAlapjai\rsa\VS\RSA\x64\Debug\RSA.exe
