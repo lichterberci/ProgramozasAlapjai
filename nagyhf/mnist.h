@@ -135,14 +135,14 @@ void print_mnist_pixel(double data_image[][SIZE], int num_data)
 }
 
 
-void print_mnist_label(int data_label[], int num_data)
+void print_mnist_label(int num_data, int max)
 {
     int i;
     if (num_data == NUM_TRAIN)
-        for (i=0; i<num_data; i++)
+        for (i=0; i<max; i++)
             printf("train_label[%d]: %d\n", i, train_label[i]);
     else
-        for (i=0; i<num_data; i++)
+        for (i=0; i<max; i++)
             printf("test_label[%d]: %d\n", i, test_label[i]);
 }
 

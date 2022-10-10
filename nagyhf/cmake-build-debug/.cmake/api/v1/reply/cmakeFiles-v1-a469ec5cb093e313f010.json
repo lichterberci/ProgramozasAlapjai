@@ -429,8 +429,8 @@
 	"kind" : "cmakeFiles",
 	"paths" : 
 	{
-		"build" : "E:/ProgramozasAlapjai/ProgramozasAlapjai/cmake-build-debug",
-		"source" : "E:/ProgramozasAlapjai/ProgramozasAlapjai"
+		"build" : "E:/ProgramozasAlapjai/ProgramozasAlapjai/nagyhf/cmake-build-debug",
+		"source" : "E:/ProgramozasAlapjai/ProgramozasAlapjai/nagyhf"
 	},
 	"version" : 
 	{
