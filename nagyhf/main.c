@@ -4,13 +4,25 @@
 #include "stdint.h"
 #include "mnist.h"
 
+
 typedef struct {
 
     uint8_t numData; // numImages == numLabels
+    uint32_t numRows;
+    uint32_t numCols;
     double* images; // array pixels --> we need helper functions to read normally
     uint8_t* labels;
 
-} DataSet;
+} Dataset;
+
+typedef struct {
+
+    uint32_t numRows;
+    uint32_t numCols;
+    double* data;
+    uint8_t label;
+
+} LabeledImage;
 
 int ReadInt (FILE* fp) {
     uint8_t buffer[4];
@@ -37,23 +49,65 @@ uint8_t ReadByte (FILE* fp) {
     return result;
 }
 
-DataSet ReadDataSetFromFile (const char* imagePath, const char* labelPath) {
+void FreeDataset (Dataset dataset) {
+    free (dataset.images);
+    free (dataset.labels);
+}
 
-    FILE* imageFP = fopen(imagePath, "r");
-    FILE* labelFP = fopen(labelPath, "r");
+LabeledImage GetImageFromDataset (Dataset dataset, int index) {
+    printf("index = %d\n", index);
+    printf("dataset.images = %p\n", dataset.images);
+    printf("(index * (dataset.numRows * dataset.numCols) * sizeof(double)) = %d\n", (index * (dataset.numRows * dataset.numCols) * sizeof(double)));
+    LabeledImage result = {
+        dataset.numRows,
+        dataset.numCols,
+        (double*)(dataset.images + (index * (dataset.numRows * dataset.numCols) * sizeof(double))),
+        dataset.labels[index]
+    };
+    return result;
+}
 
-    DataSet result = {
-        0, NULL, NULL
+double GetPixelOfImage(LabeledImage image, int x, int y) {
+    return image.data[x * image.numCols + y];
+}
+
+double GetPixelOfImageInDataset (Dataset dataset, int imageIndex, int x, int y) {
+    return dataset.images[imageIndex * (dataset.numRows * dataset.numCols) + x * dataset.numCols + y];
+}
+
+void PrintLabeledImage (LabeledImage image) {
+
+    for (size_t i = 0; i < image.numCols; i++) {
+        for (size_t j = 0; j < image.numRows; j++) {
+            double val = GetPixelOfImage(image, i, j);
+            if (val > 0.1)
+                printf("%1.1f ", val);
+            else
+                printf("    ");
+        }
+        printf("\n");
+    }
+    printf("\nlabel: %d\n", image.label);
+
+}
+
+Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
+
+    FILE* imageFP = fopen(imagePath, "rb");
+    FILE* labelFP = fopen(labelPath, "rb");
+
+    Dataset emptyResult = {
+        0, 0, 0, NULL, NULL
     };
 
     if (imageFP == NULL) {
         fprintf(stderr, "[ERROR] Could not open image file %s\n", imagePath);
-        return result;
+        return emptyResult;
     }
 
     if (labelFP == NULL) {
         fprintf(stderr, "[ERROR] Could not open label file %s\n", labelPath);
-        return result;
+        return emptyResult;
     }
 
     int imageMagicNumber = ReadInt(imageFP);
@@ -67,39 +121,48 @@ DataSet ReadDataSetFromFile (const char* imagePath, const char* labelPath) {
     int labelMagicNumber = ReadInt(labelFP);
     int numLabels = ReadInt(labelFP);
 
+    if (imageMagicNumber != 2051) {
+        fprintf(stdout, "[WARNING] Magic number of image differs from 2051! (%d)\n", imageMagicNumber);
+    }
+
+    if (labelMagicNumber != 2049) {
+        fprintf(stdout, "[WARNING] Magic number of label differs from 2049! (%d)\n", labelMagicNumber);
+    }
+
     int labelOffset = 2 * sizeof(int); // we start reading the labels from here
 
     if (numLabels != numImages) {
         fprintf(stderr, "[ERROR] # images (%d) != # labels (%d)\n", numImages, numLabels);
-        return result;
+        return emptyResult;
     }
 
     // allocate memory
 
-    double** data = malloc (numImages * numCols * numRows * sizeof(double));
+    double* data = malloc (numImages * imageSize * sizeof(double));
     uint8_t* labels = malloc (numLabels * sizeof(uint8_t));
 
     // we read the image by reading it column by column (not row by row)
 
+    uint64_t dataOffset = 0;
+
     for (size_t i = 0; i < numImages; i++) {
+
+        if (i % 1000 == 0) {
+            fprintf(stdout, "[LOG] Loading data %5d/%5d...\n", i, numImages);
+        }
+
         for (size_t x = 0; x < numCols; x++) {
             for (size_t y = 0; y < numRows; y++) {
                 
                 // read pixel
 
-                uint64_t pos = imageOffset + i * imageSize + x * numCols + y;
-                fseek(imageFP, pos, SEEK_SET);
-                double val = ReadByte(imageFP)/255.0;
+                double val = ReadByte(imageFP) / 255.0;
 
-                uint64_t dataOffset = x * numCols + y;
-
-                data[dataOffset] = val;
+                data[dataOffset++] = val;
             }
         }
 
         // read label
-
-        fseek(labelFP, labelOffset + i, SEEK_SET);
 
         uint8_t label = ReadByte(labelFP);
 
@@ -111,24 +174,26 @@ DataSet ReadDataSetFromFile (const char* imagePath, const char* labelPath) {
     fclose(imageFP);
     fclose(labelFP);
 
-    result = {
+    Dataset result = {
         numImages,
+        numRows,
+        numCols,
         data,
         labels
     };
 
     return result;
-
 }
 
 
 int main () {
 
-    // read mnist data
+    const char* trainImagePath = "./data/train-images.idx3-ubyte";
+    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
 
-    const char* fileName = "./data/train-images.idx3-ubyte";
-    const char* labelFileName = "./data/train-labels.idx1-ubyte";
+    Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
 
+    PrintLabeledImage(GetImageFromDataset(trainSet, 0));
 
     return 0;
 }
