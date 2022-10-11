@@ -6,21 +6,20 @@
 
 #define PRINTING_THRESHOLD 0.0
 
+#define IMAGE_SIZE 784
+#define IMAGE_WIDTH 28
+#define IMAGE_HEIGHT 28
+
 typedef struct {
 
     uint32_t numData; // numImages == numLabels
-    uint32_t numRows;
-    uint32_t numCols;
-    double* images; // array pixels --> we need helper functions to read normally
-    uint8_t* labels;
+    LabeledImage* images;
 
 } Dataset;
 
 typedef struct {
 
-    uint32_t numRows;
-    uint32_t numCols;
-    double* data;
+    double data[IMAGE_SIZE];
     uint8_t label;
 
 } LabeledImage;
@@ -53,40 +52,29 @@ uint8_t ReadByte (FILE* fp) {
 }
 
 void FreeDataset (Dataset dataset) {
-    free (dataset.images);
-    free (dataset.labels);
-}
+    for (size_t i = 0; i < dataset.numData; i++) {
+        free(dataset.images[i].data);
+    }
 
-LabeledImage GetImageFromDataset (Dataset dataset, int index) {
-    LabeledImage result = {
-        dataset.numRows,
-        dataset.numCols,
-        (double*)(dataset.images + (index * (dataset.numRows * dataset.numCols) * sizeof(double))),
-        dataset.labels[index]
-    };
-    return result;
+    free(dataset.images);        
 }
 
 double GetPixelOfImage(LabeledImage image, int x, int y) {
-    return image.data[x * image.numCols + y];
-}
-
-double GetPixelOfImageInDataset (Dataset dataset, int imageIndex, int x, int y) {
-    return dataset.images[(uint64_t)imageIndex * (dataset.numRows * dataset.numCols) + x * dataset.numCols + y];
+    return image.data[x * IMAGE_HEIGHT + y];
 }
 
 void PrintLabeledImage (LabeledImage image) {
 
     printf("+");
-    for (size_t i = 0; i < image.numRows * 4; i++)
+    for (size_t i = 0; i < IMAGE_HEIGHT * 4; i++)
         printf("-");
     printf("+\n");
     
-    for (size_t i = 0; i < image.numCols; i++) {
+    for (size_t i = 0; i < IMAGE_WIDTH; i++) {
 
         printf("|");
 
-        for (size_t j = 0; j < image.numRows; j++) {
+        for (size_t j = 0; j < IMAGE_HEIGHT; j++) {
 
             double val = GetPixelOfImage(image, i, j);
             if (val > PRINTING_THRESHOLD)
@@ -99,12 +87,12 @@ void PrintLabeledImage (LabeledImage image) {
     }
 
     printf("+");
-    for (size_t i = 0; i < image.numRows * 2 - 5; i++)
+    for (size_t i = 0; i < IMAGE_HEIGHT * 2 - 5; i++)
         printf("-");
 
     printf(" label: %d ", image.label);
 
-    for (size_t i = 0; i < image.numRows * 2 - 5; i++)
+    for (size_t i = 0; i < IMAGE_HEIGHT * 2 - 5; i++)
         printf("-");
     printf("+\n");
 
@@ -157,9 +145,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
     }
 
     // allocate memory
-
-    double* data = malloc (numImages * imageSize * sizeof(double));
-    uint8_t* labels = malloc (numLabels * sizeof(uint8_t));
+    LabeledImage* images = calloc(numImages, sizeof(LabeledImage));
 
     if (data == NULL) {
         fprintf (stderr, "[ERROR] Could not allocate enough memory for [data]!\n");
@@ -175,13 +161,13 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
 
     printf("[LOG] Loading dataset from [\"%s\"] and [\"%s\"]!\n", imagePath, labelPath);
 
-    uint64_t dataOffset = 0;
-
     for (size_t i = 0; i < numImages; i++) {
 
         if (i % 10000 == 0) {
             fprintf(stdout, "[LOG] Loading data... (%5d/%5d)\n", i, numImages);
         }
+
+        LabeledImage image;
 
         for (size_t x = 0; x < numCols; x++) {
             for (size_t y = 0; y < numRows; y++) {
@@ -190,7 +176,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
 
                 double val = ReadByte(imageFP) / 255.0;
 
-                data[dataOffset++] = val;
+                data[x * IMAGE_HEIGHT + y] = val;
             }
         }
 
@@ -198,27 +184,29 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
 
         uint8_t label = ReadByte(labelFP);
 
-        labels[i] = label;
+        image.label = label;
         
+        images[i] = image;
+
     }
 
     // check if we have really read all data in the file
 
-    bool isImageEOF = feof(imageFP) != 0;
-    bool isLabelEOF = feof(labelFP) != 0;
+    uint64_t currentImagePos = ftell(imageFP);
+    fseek(imageFP, 0, SEEK_END);
+    uint64_t imageFileSize = ftell(imageFP);
 
-    if (!isImageEOF) {
-        uint64_t currentPos = ftell(imageFP);
-        fseek(imageFP, 0, SEEK_END);
-        uint64_t size = ftell(imageFP);
-        fprintf(stderr, "[WARNING] Did not read the whole file! (ftell=%d, size=%d) [%s]\n", currentPos, size, imagePath);
+    uint64_t currentLabelPos = ftell(labelFP);
+    fseek(labelFP, 0, SEEK_END);
+    uint64_t labelFileSize = ftell(labelFP);
+    
+
+    if (currentImagePos != imageFileSize) {
+        fprintf(stderr, "[WARNING] Did not read the whole file! (ftell=%d, size=%d) [%s]\n", currentImagePos, imageFileSize, imagePath);
     }
 
-    if (!isLabelEOF) {
-        uint64_t currentPos = ftell(labelFP);
-        fseek(labelFP, 0, SEEK_END);
-        uint64_t size = ftell(labelFP);
-        fprintf(stderr, "[WARNING] Did not read the whole file! (ftell=%d, size=%d) [%s]\n", currentPos, size, labelPath);
+    if (currentLabelPos != labelFileSize) {
+        fprintf(stderr, "[WARNING] Did not read the whole file! (ftell=%d, size=%d) [%s]\n", currentLabelPos, labelFileSize, labelPath);
     }
 
     // we have finished reading this stuff
@@ -230,10 +218,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
 
     Dataset result = {
         numImages,
-        numRows,
-        numCols,
-        data,
-        labels
+        images
     };
 
     return result;
@@ -253,31 +238,16 @@ int main () {
     if (trainSet.numData == 0 || testSet.numData == 0)
         exit(-1);
 
-    const int safeStart = 40000;
+    const int start = 0;
+    const int num = 4;
+    const int stride = 1;
 
-    for (int i = safeStart; i < trainSet.numData; i++) {
-        for (int j = 0; j < trainSet.numRows * trainSet.numCols; j++) { 
-            printf("i = %6d j = %3d (ptr = %p) %1.3lf", 
-                i, 
-                j, 
-                &(trainSet.images[i * trainSet.numCols * trainSet.numRows + j]),
-                trainSet.images[i * trainSet.numCols * trainSet.numRows + j]
-            );
-            printf("\r");
-        }
+    for (uint64_t i = start; i < start + num; i+=stride) {
+
+        printf("i = %d\n", i);
+        LabeledImage img = trainSet.images[i];
+        PrintLabeledImage(img);
     }
-
-    // const int start = 1000;
-    // const int num = 4;
-    // const int stride = 1;
-
-    // for (uint64_t i = start; i < start + num; i+=stride) {
-
-    //     printf("i = %d\n", i);
-    //     LabeledImage img = GetImageFromDataset(trainSet, i);
-    //     PrintLabeledImage(img);
-        
-    // }
     
     printf("Code exited safely!");
     return 0;
