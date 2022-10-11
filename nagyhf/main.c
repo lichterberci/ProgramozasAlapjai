@@ -113,8 +113,8 @@ void PrintLabeledImage (LabeledImage image) {
 
 Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
 
-    FILE* imageFP = fopen(imagePath, "br");
-    FILE* labelFP = fopen(labelPath, "br");
+    FILE* imageFP = fopen(imagePath, "rb");
+    FILE* labelFP = fopen(labelPath, "rb");
 
     Dataset emptyResult = {
         0, 0, 0, NULL, NULL
@@ -201,7 +201,26 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
         labels[i] = label;
         
     }
-    
+
+    // check if we have really read all data in the file
+
+    bool isImageEOF = feof(imageFP) != 0;
+    bool isLabelEOF = feof(labelFP) != 0;
+
+    if (!isImageEOF) {
+        uint64_t currentPos = ftell(imageFP);
+        fseek(imageFP, 0, SEEK_END);
+        uint64_t size = ftell(imageFP);
+        fprintf(stderr, "[WARNING] Did not read the whole file! (ftell=%d, size=%d) [%s]\n", currentPos, size, imagePath);
+    }
+
+    if (!isLabelEOF) {
+        uint64_t currentPos = ftell(labelFP);
+        fseek(labelFP, 0, SEEK_END);
+        uint64_t size = ftell(labelFP);
+        fprintf(stderr, "[WARNING] Did not read the whole file! (ftell=%d, size=%d) [%s]\n", currentPos, size, labelPath);
+    }
+
     // we have finished reading this stuff
 
     fclose(imageFP);
@@ -234,7 +253,7 @@ int main () {
     if (trainSet.numData == 0 || testSet.numData == 0)
         exit(-1);
 
-    const int start = 0;
+    const int start = 1000;
     const int num = 4;
     const int stride = 1;
 
