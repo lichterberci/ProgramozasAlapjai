@@ -253,17 +253,31 @@ int main () {
     if (trainSet.numData == 0 || testSet.numData == 0)
         exit(-1);
 
-    const int start = 1000;
-    const int num = 4;
-    const int stride = 1;
+    const int safeStart = 40000;
 
-    for (uint64_t i = start; i < start + num; i+=stride) {
-
-        printf("i = %d\n", i);
-        LabeledImage img = GetImageFromDataset(trainSet, i);
-        PrintLabeledImage(img);
-        
+    for (int i = safeStart; i < trainSet.numData; i++) {
+        for (int j = 0; j < trainSet.numRows * trainSet.numCols; j++) { 
+            printf("i = %6d j = %3d (ptr = %p) %1.3lf", 
+                i, 
+                j, 
+                &(trainSet.images[i * trainSet.numCols * trainSet.numRows + j]),
+                trainSet.images[i * trainSet.numCols * trainSet.numRows + j]
+            );
+            printf("\r");
+        }
     }
+
+    // const int start = 1000;
+    // const int num = 4;
+    // const int stride = 1;
+
+    // for (uint64_t i = start; i < start + num; i+=stride) {
+
+    //     printf("i = %d\n", i);
+    //     LabeledImage img = GetImageFromDataset(trainSet, i);
+    //     PrintLabeledImage(img);
+        
+    // }
     
     printf("Code exited safely!");
     return 0;
