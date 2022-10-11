@@ -4,6 +4,7 @@
 #include "stdint.h"
 
 #include "dataset.h"
+#include "model.h"
 
 
 int main () {
@@ -19,17 +20,14 @@ int main () {
     if (trainSet.numData == 0 || testSet.numData == 0)
         exit(-1);
 
-    const int start = 40000;
-    const int num = 4;
-    const int stride = 1;
+    Model model = CreateModel(2, 100, RELU, 50, RELU, SIGMOID);
 
-    for (uint64_t i = start; i < start + num; i+=stride) {
-
-        printf("i = %d\n", i);
-        LabeledImage img = trainSet.images[i];
-        PrintLabeledImage(img);
-    }
+    PrintModel(model);
     
+    InitModelToRandom(&model, 1.0);
+
+    PrintModel(model);
+
     printf("Code exited safely!");
     return 0;
 }
