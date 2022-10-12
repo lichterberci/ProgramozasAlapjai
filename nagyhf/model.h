@@ -5,7 +5,7 @@
 
 #include "dataset.h"
 
-#define NUM_CLASSES 10
+#define NUM_CLASSES 1
 #define MAX_LAYER_DIM 1000
 
 typedef enum {
@@ -54,6 +54,7 @@ void FreeLayer(Layer layer);
 void InitModelToRandom (Model* model, double randomRange);
 Model CreateModel(int numHiddenLayers, ...);
 
-Result Predict(Model model, double* input);
-double CalculateError(Model model, uint8_t label, Result result);
-void BackPropagate(Model model);
+Result Predict(Model model, double* input, double** out_neuronValues);
+double CalculateCost(uint8_t label, double* resultValues);
+void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate);
+void FitModelForImage (Model model, LabeledImage* image, double learningRate);
