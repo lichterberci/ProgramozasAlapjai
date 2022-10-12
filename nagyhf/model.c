@@ -5,9 +5,6 @@
 #include "string.h"
 #include "stdlib.h"
 
-#define NUM_CLASSES 10
-#define MAX_LAYER_DIM 1000
-
 int min (int a, int b) { 
     return a < b ? a : b;
 }
@@ -31,6 +28,16 @@ double ReLU (double x) {
 
 double ReLUDer (double x) {
     return x >= 0 ? 1 : 0;
+}
+
+void PrintResult(Result result) {
+    printf("Result: probs = [ ");
+    for (int i = 0; i < NUM_CLASSES; i++) {
+        printf("%1.1f", result.probs[i]);
+        if (i < NUM_CLASSES - 1)
+            printf(", ");
+    }
+    printf(" ]\n");
 }
 
 void FreeModel(Model model) {

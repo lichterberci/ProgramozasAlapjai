@@ -5,6 +5,8 @@
 
 #include "dataset.h"
 
+#define NUM_CLASSES 10
+#define MAX_LAYER_DIM 1000
 
 typedef enum {
 
@@ -37,7 +39,7 @@ typedef struct {
 } Model;
 
 typedef struct {
-    double probs[10];
+    double probs[NUM_CLASSES];
 } Result;
 
 double Sigmoid (double x);
@@ -46,6 +48,7 @@ double ReLU (double x);
 double ReLUDer (double x);
 
 void PrintModel(Model model);
+void PrintResult(Result result);
 void FreeModel(Model model);
 void FreeLayer(Layer layer);
 void InitModelToRandom (Model* model, double randomRange);
