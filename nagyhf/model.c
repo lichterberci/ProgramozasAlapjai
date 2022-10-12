@@ -212,16 +212,36 @@ Result Predict(Model model, double* input) {
     double prevLayerValues[MAX_LAYER_DIM] = {0};
     double currentLayerValues[MAX_LAYER_DIM] = {0};
 
-    memcpy(&prevLayerValues, input, IMAGE_SIZE);
+    printf("input: %1.3f\n", input[0]);
+
+    printf("[LOG] Predicting... (numLayers = %d)\n", model.numLayers);
+
+    memcpy(&prevLayerValues, input, min(IMAGE_SIZE * sizeof(double), model.layers[0].inputDim * sizeof(double)));
+
+    printf("prevval: %1.3f\n", prevLayerValues[0]);
+    printf("copy size: %d\n", min(IMAGE_SIZE, model.layers[0].inputDim));
 
     for (int currentLayerIndex = 0; currentLayerIndex < model.numLayers; currentLayerIndex++) {
         
         Layer currentLayer = model.layers[currentLayerIndex];
 
+        const char* activationFunctionString = (
+                currentLayer.activationFunction == SIGMOID ? 
+                "sigmoid" : currentLayer.activationFunction == RELU ?
+                "ReLU" : "Unknown"
+            );
+
+        printf("[LOG] Layer[%d]: (%d, %d) act.fn=%s\n", 
+            currentLayerIndex, 
+            currentLayer.inputDim, 
+            currentLayer.outputDim,
+            activationFunctionString
+        );
+
         int inputDim = currentLayer.inputDim;
         int outputDim = currentLayer.outputDim;
 
-        memset(&currentLayerIndex, 0, MAX_LAYER_DIM * sizeof(double));
+        memset(&currentLayerValues, 0, MAX_LAYER_DIM * sizeof(double));
 
         for (size_t outputIndex = 0; outputIndex < outputDim; outputIndex++) {
 
@@ -232,10 +252,14 @@ Result Predict(Model model, double* input) {
                 double weight = currentLayer.weights[outputIndex * outputDim + inputIndex];
                 double neuron = prevLayerValues[inputIndex];
                 currentSum += weight * neuron;
+
+                printf("[LOG] sum += n=%1.3f * w=%1.3f\n", neuron, weight);
             }
 
             double bias = currentLayer.biases[outputIndex];
             currentSum += bias;
+
+            printf("[LOG] sum += b=%1.3f\n", bias);
 
             double value;
 
@@ -245,6 +269,8 @@ Result Predict(Model model, double* input) {
                 value = ReLU(currentSum);
             else
                 fprintf(stderr, "[ERROR] unknown activation function %d!\n", currentLayer.activationFunction);
+
+            printf("[LOG] sum = %.3f val = %.3f\n", currentSum, value);
 
             currentLayerValues[outputIndex] = value;
         }

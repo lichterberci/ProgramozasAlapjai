@@ -5,7 +5,7 @@
 
 #include "dataset.h"
 
-#define NUM_CLASSES 10
+#define NUM_CLASSES 1
 #define MAX_LAYER_DIM 1000
 
 typedef enum {

@@ -28,7 +28,7 @@ int main () {
 
     if (trainSet.numData == 0 || testSet.numData == 0)
         exit(-1);
-
+        
     //                        V--- Number of hidden layers, don't forget to update!!!
     Model model = CreateModel(1, 1, RELU, SIGMOID);
     
@@ -38,9 +38,12 @@ int main () {
 
     PrintModel(model);
 
-    double dummyInput = 1.0;
+    double dummyInput = 0.5;
 
-    Result result = Predict(model, &dummyInput);
+    double* input = trainSet.images[0].data;
+    input = &dummyInput;
+
+    Result result = Predict(model, input);
 
     PrintResult(result);
 
