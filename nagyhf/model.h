@@ -5,7 +5,7 @@
 
 #include "dataset.h"
 
-#define NUM_CLASSES 1
+#define NUM_CLASSES 10
 #define MAX_LAYER_DIM 1000
 
 typedef enum {
@@ -21,8 +21,8 @@ typedef struct {
 
     // 2d array (inputDim * outputDim)
     // --> from input index 2 to output index 3 the index will be 3 * inputDim + 2
-    //     (inputIndex + outputIndex * currentDim)
-    //     --> this way the currentDim will step slower, which is good, because that will be in the outer for-loop
+    //     (inputIndex + outputIndex * inputDim)
+    //     --> this way the inputDim will step slower, which is good, because that will be in the outer for-loop
     double* weights; 
     // len = outputDim
     double* biases;

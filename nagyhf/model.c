@@ -78,7 +78,7 @@ void PrintModel(Model model) {
         if (model.layers[i].weights != NULL) {
             for (int j = 0; j < min(10, model.layers[i].inputDim * model.layers[i].outputDim); j++) {
 
-                printf("%1.1f", model.layers[i].weights[j]);
+                printf("%e", model.layers[i].weights[j]);
 
                 if (j < model.layers[i].inputDim * model.layers[i].outputDim - 1)
                     printf(", ");
@@ -97,7 +97,7 @@ void PrintModel(Model model) {
             
             for (int j = 0; j < min(10, model.layers[i].outputDim); j++) {
 
-                printf("%1.1f", model.layers[i].biases[j]);
+                printf("%e", model.layers[i].biases[j]);
 
                 if (j < model.layers[i].outputDim - 1)
                     printf(", ");
@@ -212,31 +212,31 @@ Result Predict(Model model, double* input) {
     double prevLayerValues[MAX_LAYER_DIM] = {0};
     double currentLayerValues[MAX_LAYER_DIM] = {0};
 
-    printf("input: %1.3f\n", input[0]);
+    // printf("input: %1.3f\n", input[0]);
 
-    printf("[LOG] Predicting... (numLayers = %d)\n", model.numLayers);
+    // printf("[LOG] Predicting... (numLayers = %d)\n", model.numLayers);
 
-    memcpy(&prevLayerValues, input, min(IMAGE_SIZE * sizeof(double), model.layers[0].inputDim * sizeof(double)));
+    memcpy(&prevLayerValues, input, IMAGE_SIZE * sizeof(double));
 
-    printf("prevval: %1.3f\n", prevLayerValues[0]);
-    printf("copy size: %d\n", min(IMAGE_SIZE, model.layers[0].inputDim));
+    // printf("prevval: %1.3f\n", prevLayerValues[0]);
+    // printf("copy size: %d\n", min(IMAGE_SIZE, model.layers[0].inputDim));
 
     for (int currentLayerIndex = 0; currentLayerIndex < model.numLayers; currentLayerIndex++) {
         
         Layer currentLayer = model.layers[currentLayerIndex];
 
-        const char* activationFunctionString = (
-                currentLayer.activationFunction == SIGMOID ? 
-                "sigmoid" : currentLayer.activationFunction == RELU ?
-                "ReLU" : "Unknown"
-            );
+        // const char* activationFunctionString = (
+        //         currentLayer.activationFunction == SIGMOID ? 
+        //         "sigmoid" : currentLayer.activationFunction == RELU ?
+        //         "ReLU" : "Unknown"
+        //     );
 
-        printf("[LOG] Layer[%d]: (%d, %d) act.fn=%s\n", 
-            currentLayerIndex, 
-            currentLayer.inputDim, 
-            currentLayer.outputDim,
-            activationFunctionString
-        );
+        // printf("[LOG] Layer[%d]: (%d, %d) act.fn=%s\n", 
+        //     currentLayerIndex, 
+        //     currentLayer.inputDim, 
+        //     currentLayer.outputDim,
+        //     activationFunctionString
+        // );
 
         int inputDim = currentLayer.inputDim;
         int outputDim = currentLayer.outputDim;
@@ -249,17 +249,17 @@ Result Predict(Model model, double* input) {
 
             for (size_t inputIndex = 0; inputIndex < inputDim; inputIndex++) {
 
-                double weight = currentLayer.weights[outputIndex * outputDim + inputIndex];
+                double weight = currentLayer.weights[outputIndex * inputDim + inputIndex];
                 double neuron = prevLayerValues[inputIndex];
                 currentSum += weight * neuron;
 
-                printf("[LOG] sum += n=%1.3f * w=%1.3f\n", neuron, weight);
+                // printf("[LOG] sum += n=%1.3f * w=%1.3f\n", neuron, weight);
             }
 
             double bias = currentLayer.biases[outputIndex];
             currentSum += bias;
 
-            printf("[LOG] sum += b=%1.3f\n", bias);
+            // printf("[LOG] sum += b=%1.3f\n", bias);
 
             double value;
 
@@ -270,7 +270,7 @@ Result Predict(Model model, double* input) {
             else
                 fprintf(stderr, "[ERROR] unknown activation function %d!\n", currentLayer.activationFunction);
 
-            printf("[LOG] sum = %.3f val = %.3f\n", currentSum, value);
+            // printf("[LOG] sum = %.3f val = %.3f\n", currentSum, value);
 
             currentLayerValues[outputIndex] = value;
         }

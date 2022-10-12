@@ -28,24 +28,29 @@ int main () {
 
     if (trainSet.numData == 0 || testSet.numData == 0)
         exit(-1);
-        
+
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 1, RELU, SIGMOID);
+    Model model = CreateModel(3, 100, RELU, 100, RELU, 50, SIGMOID, SIGMOID);
     
     PrintModel(model);
     
-    InitModelToRandom(&model, 1.0);
+    InitModelToRandom(&model, 4.0);
 
     PrintModel(model);
 
-    double dummyInput = 0.5;
+    // double dummyInput = 0.5;
 
-    double* input = trainSet.images[0].data;
-    input = &dummyInput;
+    for (int i = 0; i < trainSet.numData; i++) {
+        double* input = trainSet.images[i].data;
+        // input = &dummyInput;
 
-    Result result = Predict(model, input);
+        Result result = Predict(model, input);
 
-    PrintResult(result);
+        // PrintResult(result);
+        
+        if (i % 1000 == 0)
+            printf("[LOG] Predicting images... (%5d/%5d)\n", i, trainSet.numData);
+    }
 
     printf("Code exited safely!");
     return 0;
