@@ -117,6 +117,13 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
         fprintf(stdout, "[WARNING] Magic number of label differs from 2049! (%d)\n", labelMagicNumber);
     }
 
+    if (imageSize != IMAGE_SIZE || numRows != IMAGE_HEIGHT || numCols != IMAGE_WIDTH) {
+        fprintf(stderr, "[ERROR] Image dimension mismatch! (imageSize = %d, numRows = %d, numCols = %d)\n", imageSize, numRows, numCols);
+        fclose(imageFP);
+        fclose(labelFP);
+        return emptyResult;
+    }
+
     int labelOffset = 2 * sizeof(int); // we start reading the labels from here
 
     if (numLabels != numImages) {

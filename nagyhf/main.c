@@ -30,28 +30,29 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 1, SIGMOID, SIGMOID);
+    Model model = CreateModel(1, 1, SIGMOID, SOFTMAX);
         
-    InitModelToRandom(&model, 2.0);
+    InitModelToRandom(&model, 1.0);
 
     PrintModel(model);
 
-    double dummyInput = 0.5;
-    double* input = &dummyInput;
+    // LabeledImage dummyImage;
+    // dummyImage.data[0] = 0.3;
+    // dummyImage.label = 0;
 
-    Result result = Predict(model, input, NULL);
-    PrintResult(result);
+    // FitModelForImage(model, &dummyImage, 1.0);
 
-    LabeledImage dummyImage;
-    dummyImage.data[0] = dummyInput;
-    dummyImage.label = 3;
+    // PrintModel(model);
 
-    malloc(14);
-
-    FitModelForImage(model, &dummyImage, 1.0);
-
-    Result result2 = Predict(model, input, NULL);
-    PrintResult(result2);
+    for (int i = 0; i < 100; i++)
+    {
+        FitModelForImage(model, &(trainSet.images[0]), 0.001);
+        if (i % 10 == 0) {
+            Result result = Predict(model, (double*)&(trainSet.images[0].data), NULL);
+            //PrintResult(result);
+        }
+    }
+    
 
     printf("Code exited safely!");
     return 0;

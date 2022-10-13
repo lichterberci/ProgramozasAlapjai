@@ -33,7 +33,7 @@ double ReLUDer (double x) {
 void PrintResult(Result result) {
     printf("Result: probs = [ ");
     for (int i = 0; i < NUM_CLASSES; i++) {
-        printf("%1.1f", result.probs[i]);
+        printf("%e", result.probs[i]);
         if (i < NUM_CLASSES - 1)
             printf(", ");
     }
@@ -62,7 +62,8 @@ void PrintModel(Model model) {
         const char* activationFunctionString = (
                 model.layers[i].activationFunction == SIGMOID ? 
                 "sigmoid" : model.layers[i].activationFunction == RELU ?
-                "ReLU" : "Unknown"
+                "ReLU" : model.layers[i].activationFunction == SOFTMAX ?
+                "softmax" : "Unknown"
             );
 
         printf("\tLayer[%d] (indim=%d, outdim=%d, act.fn=%s)\n", 
@@ -224,7 +225,8 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
         // const char* activationFunctionString = (
         //         currentLayer.activationFunction == SIGMOID ? 
         //         "sigmoid" : currentLayer.activationFunction == RELU ?
-        //         "ReLU" : "Unknown"
+        //         "ReLU" : currentLayer.activationFunction == SOFTMAX ?
+        //         "softmax" : "Unknown"
         //     );
 
         // printf("[LOG] Layer[%d]: (%d, %d) act.fn=%s\n", 
@@ -280,19 +282,6 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
         
         // calculated layer, time to move on
 
-        if (currentLayerIndex == model.numLayers - 1) {
-
-            // implement softmax
-
-            double sumOfLayerExp = 0;
-
-            for (int i = 0; i < NUM_CLASSES; i++)
-                sumOfLayerExp += exp(currentLayerValues[i]);
-
-            for (int i = 0; i < NUM_CLASSES; i++)
-                currentLayerValues[i] = exp(currentLayerValues[i]) / sumOfLayerExp;
-        }
-
         memcpy(&prevLayerValues, &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
 
         if (out_neuronValues != NULL) {
@@ -310,6 +299,46 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 
     memcpy(&(result.probs), &prevLayerValues, NUM_CLASSES * sizeof(Result));
 
+    // implement softmax
+
+    /*
+    
+    But it is easy to guard against that by using the identity softmax(x) = softmax(x + c) 
+    which holds for any scalar c: Subtracting max(x) from x leaves a vector 
+    that has only non-positive entries, ruling out overflow and at least one element that is zero 
+    ruling out a vanishing denominator (underflow in some but not all entries is harmless).
+    
+    */
+
+    double sumOfLayerExp = 0;
+
+    printf("original (before softmax)\n");
+    PrintResult(result);
+
+    double maxTerm = result.probs[0];
+
+    for (int i = 1; i < NUM_CLASSES; i++)
+        if (result.probs[i] > maxTerm) 
+            maxTerm = result.probs[i];
+
+    for (int i = 0; i < NUM_CLASSES; i++)
+        result.probs[i] -= maxTerm;
+    
+
+    for (int i = 0; i < NUM_CLASSES; i++) {
+        sumOfLayerExp += exp(result.probs[i]);
+    }
+
+    sumOfLayerExp += 0.00001; // anti zero
+    printf("sumexp: %e\n", sumOfLayerExp);
+
+    for (int i = 0; i < NUM_CLASSES; i++) {
+        result.probs[i] = exp(result.probs[i]) / sumOfLayerExp;
+    }
+
+    printf("after softmax:\n");
+    PrintResult(result);
+
     return result;
 }
 
@@ -318,22 +347,13 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 /// @brief It does not create a buffer for the -1st vector (the image)
 /// @param model 
 /// @return pointer to the buffer
-double** MakeValueBufferForModel (Model model) {
+double** MakeValueBufferForModel (int numLayers) {
 
-    printf("pls malloc work!!!\n");
-    printf("numLayers: %d\n", model.numLayers);
-    printf("first layer's address: %p\n", model.layers);
-    printf("malloc arg: %llu\n", model.numLayers*sizeof(double*));
-    double** result = malloc(model.numLayers * sizeof(double*));
+    double** result = malloc(numLayers * sizeof(double*));
 
-    printf("first malloc ok!\n");
-
-    for (int i = 0; i < model.numLayers; i++) {
-        printf("looking at malloc %d...\n", i);
-        result[i] = malloc(model.layers[i].outputDim * sizeof(double)); // faster than malloc + memset but we hopefully dont need to set it to 0
+    for (int i = 0; i < numLayers; i++) {
+        result[i] = malloc(MAX_LAYER_DIM* sizeof(double)); // faster than malloc + memset but we hopefully dont need to set it to 0
     }
-
-    printf("valami van a levegoben...\n");
 
     return result;
 }
@@ -382,20 +402,9 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
     double cost = CalculateCost (image->label, neuronValues[numLayers - 1]);
 
-    printf("cost calculated!\n");
+    // printf("[LOG] cost: %e\n", cost);
 
-    void* ptr = malloc(15);
-
-    printf("at least it works here!\n");
-
-    if (ptr == NULL) printf("NULL\n");
-    else free(ptr);
-
-    printf("it works here.....\n");
-
-    double** derBuffer = MakeValueBufferForModel(model);
-
-    printf("start calculating neuron derivatives...\n");
+    double** derBuffer = MakeValueBufferForModel(model.numLayers);
 
     // update neurons' derivatives
     for (int layerIndex = numLayers - 1; layerIndex >= 0; layerIndex--) {
@@ -408,6 +417,8 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
                 // this is already the softmax derivative as well!!!
                 derBuffer[layerIndex][i] = (neuronValues[layerIndex][i] - (image->label == i ? 1 : 0)) * cost;
+
+                // printf("[LOG] dC/dn=%e (l=%d,i=%d)\n", derBuffer[layerIndex][i], layerIndex, i);
 
             } else {
 
@@ -435,18 +446,24 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                                 ReLUDer(neuronValues[prevLayerIndex][j]) 
                                 * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
                             );
+                    else if (model.layers[prevLayerIndex].activationFunction == SOFTMAX)
+                        delta *= (
+                                neuronValues[prevLayerIndex][j] 
+                                * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
+                            );
                     else
-                        printf("[ERROR] Unknown activation function %d\n", model.layers[prevLayerIndex].activationFunction);
+                        fprintf(stderr, "[ERROR] (%s:%d) Unknown activation function %d\n", __FILE__, __LINE__, model.layers[prevLayerIndex].activationFunction);
+                    
 
                     derBuffer[layerIndex][i] += delta;
                 }
+
+                // printf("[LOG] dC/dn=%e (l=%d,i=%d)\n", derBuffer[layerIndex][i], layerIndex, i);
             }
         }
     }
 
     // neuron derivatives are done, the bulk of the work has been done
-
-    printf("start adjusting wandb...\n");
 
     // adjust weights and biases
     for (int layerIndex = 0; layerIndex < numLayers; layerIndex++) {
@@ -468,10 +485,14 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                     delta *= SigmoidDer(neuronValues[layerIndex][i]) * prevValue;
                 else if (model.layers[layerIndex].activationFunction == RELU)
                     delta *= ReLUDer(neuronValues[layerIndex][i]) * prevValue;
+                else if (model.layers[layerIndex].activationFunction == SOFTMAX)
+                    delta *= neuronValues[layerIndex][i] * prevValue;
                 else
                     printf("[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
 
-                model.layers[layerIndex].weights[j + i * model.layers[layerIndex].inputDim];
+                // printf("[LOG] dC/dw=%e (l=%d,i=%d,j=%d)\n", delta, layerIndex, i, j);
+
+                model.layers[layerIndex].weights[j + i * model.layers[layerIndex].inputDim] -= delta;
             }
 
             // adjust bias
@@ -484,9 +505,13 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                 delta *= SigmoidDer(neuronValues[layerIndex][i]);
             else if (model.layers[layerIndex].activationFunction == RELU)
                 delta *= ReLUDer(neuronValues[layerIndex][i]);
+            else if (model.layers[layerIndex].activationFunction == SOFTMAX)
+                delta *= neuronValues[layerIndex][i];
             else
                 printf("[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
+            
 
+            // printf("[LOG] dC/db=%e (l=%d,i=%d)\n", delta, layerIndex, i);
 
             model.layers[layerIndex].biases[i] -= delta;
         }
@@ -501,18 +526,10 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 /// @param learningRate 
 void FitModelForImage (Model model, LabeledImage* image, double learningRate) {
 
-    printf("numLayers: %d\n", model.numLayers);
+    double** valueBuffer = MakeValueBufferForModel (model.numLayers);
 
-    malloc(12);
-
-    double** valueBuffer = MakeValueBufferForModel (model);
-
-    printf("start predict... (prev buffer address: %p)\n", valueBuffer);
     Result result = Predict (model, image->data, valueBuffer);
 
-    malloc(12);
-
-    printf("start backprop...\n");
     BackPropagate (model, valueBuffer, image, learningRate);
 
     FreeValueBuffer (model, valueBuffer);
