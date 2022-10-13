@@ -86,11 +86,15 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
 
     if (imageFP == NULL) {
         fprintf(stderr, "[ERROR] Could not open image file %s\n", imagePath);
+        fclose(imageFP);
+        fclose(labelFP);
         return emptyResult;
     }
 
     if (labelFP == NULL) {
         fprintf(stderr, "[ERROR] Could not open label file %s\n", labelPath);
+        fclose(imageFP);
+        fclose(labelFP);
         return emptyResult;
     }
 
@@ -117,6 +121,8 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
 
     if (numLabels != numImages) {
         fprintf(stderr, "[ERROR] # images (%d) != # labels (%d)\n", numImages, numLabels);
+        fclose(imageFP);
+        fclose(labelFP);
         return emptyResult;
     }
 

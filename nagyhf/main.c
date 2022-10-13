@@ -46,6 +46,8 @@ int main () {
     dummyImage.data[0] = dummyInput;
     dummyImage.label = 3;
 
+    malloc(14);
+
     FitModelForImage(model, &dummyImage, 1.0);
 
     Result result2 = Predict(model, input, NULL);
