@@ -83,6 +83,7 @@
     "iosfwd": "cpp",
     "new": "cpp",
     "stdlib.h": "c",
-    "dataset.h": "c"
+    "dataset.h": "c",
+    "stdint.h": "c"
   }
 }
