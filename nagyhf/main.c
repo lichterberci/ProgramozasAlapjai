@@ -32,14 +32,15 @@ int main () {
     //     exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 1, SIGMOID, SOFTMAX);
+    Model model = CreateModel(0, SOFTMAX);
         
     InitModelToRandom(&model, 1.0);
 
     PrintModel(model);
 
     LabeledImage dummyImage;
-    dummyImage.data[0] = 0.3;
+    dummyImage.data[0] = 0.1;
+    dummyImage.data[1] = 0.9;
     dummyImage.label = 0;
 
     FitModelForImage(model, &dummyImage, 1.0);
