@@ -39,13 +39,29 @@ int main () {
     PrintModel(model);
 
     LabeledImage dummyImage;
-    dummyImage.data[0] = 0.1;
-    dummyImage.data[1] = 0.9;
-    dummyImage.label = 0;
+    dummyImage.data[0] = 0;
+    // dummyImage.data[1] = 0;
+    dummyImage.label = 4;
 
-    FitModelForImage(model, &dummyImage, 1.0);
+    const int iterations = 1000000;
+
+    PrintResult(Predict(model, dummyImage.data, NULL));
+
+    for (size_t i = 0; i < iterations; i++) {
+
+        if (i % (iterations / 100) == 0) {
+            Result res = Predict(model, dummyImage.data, NULL);
+            double cost = CalculateCost(dummyImage.label, res.probs);
+            printf("%2d%% - cost: %e\n", i * 100 / iterations, cost);
+        }
+
+        FitModelForImage(model, &dummyImage, 1000);
+    }
 
     PrintModel(model);
+
+    PrintResult(Predict(model, dummyImage.data, NULL));
+
 
     // for (int i = 0; i < 100; i++)
     // {
