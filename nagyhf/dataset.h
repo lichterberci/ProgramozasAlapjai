@@ -4,11 +4,12 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#define IMAGE_SIZE 1
+// #define IMAGE_SIZE 28*28
+#define IMAGE_SIZE 2
 #define IMAGE_WIDTH 28
 #define IMAGE_HEIGHT 28
 
-#define PRINTING_THRESHOLD 0.0
+#define PRINTING_THRESHOLD 0.1
 
 typedef struct {
 

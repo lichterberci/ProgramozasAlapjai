@@ -32,36 +32,75 @@ int main () {
     //     exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(0, SOFTMAX);
-        
+    Model model = CreateModel(1, 2, SIGMOID, SOFTMAX);
+    
     InitModelToRandom(&model, 1.0);
 
     PrintModel(model);
 
-    LabeledImage dummyImage;
-    dummyImage.data[0] = 0;
-    // dummyImage.data[1] = 0;
-    dummyImage.label = 4;
+    // LabeledImage testImage = trainSet.images[0];
 
-    const int iterations = 1000000;
+    LabeledImage dummyImage1;
+    dummyImage1.data[0] = 0.0;
+    dummyImage1.data[1] = 0.0;
+    dummyImage1.label = 0;
 
-    PrintResult(Predict(model, dummyImage.data, NULL));
+    LabeledImage dummyImage2;
+    dummyImage2.data[0] = 0.0;
+    dummyImage2.data[1] = 1.0;
+    dummyImage2.label = 1;
+
+    LabeledImage dummyImage3;
+    dummyImage3.data[0] = 1.0;
+    dummyImage3.data[1] = 0.0;
+    dummyImage3.label = 1;
+
+    LabeledImage dummyImage4;
+    dummyImage4.data[0] = 1.0;
+    dummyImage4.data[1] = 1.0;
+    dummyImage4.label = 0;
+
+    // LabeledImage image = testImage;
+
+    const int numImages = 4;
+
+    LabeledImage* images = malloc(numImages * sizeof(LabeledImage));
+
+    images[0] = dummyImage1;
+    images[1] = dummyImage2;
+    images[2] = dummyImage3;
+    images[3] = dummyImage4;
+
+    const int iterations = 1;
+    const double learningRate = 1;
+
+    // PrintResult(Predict(model, image.data, NULL));
 
     for (size_t i = 0; i < iterations; i++) {
 
-        if (i % (iterations / 100) == 0) {
-            Result res = Predict(model, dummyImage.data, NULL);
-            double cost = CalculateCost(dummyImage.label, res.probs);
-            printf("%2d%% - cost: %e\n", i * 100 / iterations, cost);
+        if (iterations >= 100) {
+            if (i % (iterations / 100) == 0) {
+                double avgCost = CalculateAvgCostForModel (model, images, numImages);
+                printf("%2d%% - avg. cost: %e\n", i * 100 / iterations, avgCost);
+            }
         }
 
-        FitModelForImage(model, &dummyImage, 1000);
+        // dummyImage.data[0] = rand() / RAND_MAX;
+
+        FitModelForImage(model, &images[0], learningRate);
+        FitModelForImage(model, &images[1], learningRate);
+        FitModelForImage(model, &images[2], learningRate);
+        FitModelForImage(model, &images[3], learningRate);
+
     }
 
     PrintModel(model);
 
-    PrintResult(Predict(model, dummyImage.data, NULL));
-
+    PrintResult(Predict(model, images[0].data, NULL));
+    PrintResult(Predict(model, images[1].data, NULL));
+    PrintResult(Predict(model, images[2].data, NULL));
+    PrintResult(Predict(model, images[3].data, NULL));
+    
 
     // for (int i = 0; i < 100; i++)
     // {

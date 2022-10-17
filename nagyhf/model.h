@@ -5,7 +5,8 @@
 
 #include "dataset.h"
 
-#define NUM_CLASSES 5
+// #define NUM_CLASSES 10 
+#define NUM_CLASSES 2
 #define MAX_LAYER_DIM 1000
 
 typedef enum {
@@ -58,3 +59,4 @@ Result Predict(Model model, double* input, double** out_neuronValues);
 double CalculateCost(uint8_t label, double* resultValues);
 void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate);
 void FitModelForImage (Model model, LabeledImage* image, double learningRate);
+double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImages);

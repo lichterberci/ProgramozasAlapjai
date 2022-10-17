@@ -5,8 +5,8 @@
 #include "stdlib.h"
 #include "string.h"
 
-#define VERBOSE_BACKPROP 0
-#define VERBOSE_PREDICTION 0
+#define VERBOSE_BACKPROP 1
+#define VERBOSE_PREDICTION 1
 
 int min (int a, int b) { 
     return a < b ? a : b;
@@ -121,6 +121,8 @@ void InitModelToRandom (Model* model, double randomRange) {
     for (size_t i = 0; i < model->numLayers; i++) {
         Layer layer = model->layers[i];
 
+        printf("layer[%d] - inputDIm: %d, outputDim: %d\n", i, layer.inputDim, layer.outputDim);
+
         if (i == 0) {
             if (layer.inputDim != IMAGE_SIZE) {
                 fprintf(stdout, "[WARNING] The model's first layer has %d dimensions (not %d)\n", layer.inputDim, IMAGE_SIZE);
@@ -174,10 +176,12 @@ Model CreateModel(int numHiddenLayers, ...) {
 
     Model model;
     model.numLayers = numHiddenLayers + 1;
+    model.layers = malloc(model.numLayers * sizeof(Layer));
 
     va_list ap;
     int numParams = numHiddenLayers * 2 + 1;
-    va_start(ap, numHiddenLayers);
+    
+    va_start(ap, numParams);
 
     int prevLayerDim = IMAGE_SIZE;
 
@@ -451,7 +455,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
         // differentiate the cost function
 
-        derBuffer[numLayers - 1][i] = (2 / NUM_CLASSES) * (neuronValues[numLayers - 1][i] - (image->label == i ? 1 : 0));
+        derBuffer[numLayers - 1][i] = (2.0 / NUM_CLASSES) * (neuronValues[numLayers - 1][i] - (image->label == i ? 1 : 0));
 
         if (VERBOSE_BACKPROP)
             printf("[LOG] cost der: %lf (i=%d) \n", derBuffer[numLayers - 1][i], i);
@@ -603,4 +607,14 @@ void FitModelForImage (Model model, LabeledImage* image, double learningRate) {
     BackPropagate (model, valueBuffer, image, learningRate);
 
     FreeValueBuffer (model, valueBuffer);
+}
+
+double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImages) {
+    double avgCost = 0.0;
+    for (int i = 0; i < numImages; i++) {
+        Result res = Predict (model, images[i].data, NULL);
+        double cost = CalculateCost (images[i].label, res.probs);
+        avgCost += cost / numImages;
+    }
+    return avgCost;
 }

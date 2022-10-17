@@ -118,7 +118,13 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
     }
 
     if (imageSize != IMAGE_SIZE || numRows != IMAGE_HEIGHT || numCols != IMAGE_WIDTH) {
-        fprintf(stderr, "[ERROR] Image dimension mismatch! (imageSize = %d, numRows = %d, numCols = %d)\n", imageSize, numRows, numCols);
+        fprintf(
+            stderr, 
+            "[ERROR] Image dimension mismatch! (imageSize = %d, numRows = %d, numCols = %d)" 
+            "whereas it should be (%d, %d, %d)\n", 
+            imageSize, numRows, numCols,
+            IMAGE_SIZE, IMAGE_HEIGHT, IMAGE_WIDTH
+        );
         fclose(imageFP);
         fclose(labelFP);
         return emptyResult;

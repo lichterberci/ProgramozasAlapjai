@@ -84,6 +84,7 @@
     "new": "cpp",
     "stdlib.h": "c",
     "dataset.h": "c",
-    "stdint.h": "c"
+    "stdint.h": "c",
+    "stdarg.h": "c"
   }
 }

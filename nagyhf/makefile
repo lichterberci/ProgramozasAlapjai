@@ -4,13 +4,11 @@ LDFLAGS=-lgdi32
  
 EXECUTABLE = main
 
-src = $(wildcard *.c)
-obj = $(src:.c=.o)
- 
+src = $(wildcard *.c) $(wildcard *.h)
+
+# .o files are buggy lol
+
 all: program
  
-program: $(obj)
+program: $(src)
 	$(CC) -o $(EXECUTABLE) $^ $(LDFLAGS)
-
-cleam: $(obj)
-	rm $(obj)
