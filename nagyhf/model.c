@@ -22,6 +22,7 @@ double Sigmoid (double x) {
 }
 
 double SigmoidDer (double x) {
+    // printf("o'(%3.2e) = %3.2e\n", x, exp(-x) / pow(1 + exp(-x), 2));
     return exp(-x) / pow(1 + exp(-x), 2);
 }
 
@@ -496,22 +497,22 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
                     double delta = derBuffer[prevLayerIndex][j];
 
-                    if (model.layers[prevLayerIndex].activationFunction == SIGMOID)
+                    if (model.layers[layerIndex].activationFunction == SIGMOID)
                         delta *= (
-                                SigmoidDer(neuronValues[prevLayerIndex][j]) 
+                                SigmoidDer(neuronValues[layerIndex][i]) 
                                 * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
                             );
-                    else if (model.layers[prevLayerIndex].activationFunction == RELU)
+                    else if (model.layers[layerIndex].activationFunction == RELU)
                         delta *= (
-                                ReLUDer(neuronValues[prevLayerIndex][j]) 
+                                ReLUDer(neuronValues[layerIndex][i]) 
                                 * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
                             );
-                    else if (model.layers[prevLayerIndex].activationFunction == SOFTMAX) {
+                    else if (model.layers[layerIndex].activationFunction == SOFTMAX) {
                         delta *= (
                                 1 // we have already calculated the gradient
                                 * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
                             );
-                        // fprintf(stderr, "[ERROR] Softmax should not be used outside of the last layer!\n");
+                        fprintf(stderr, "[ERROR] Softmax should not be used outside of the last layer!\n");
                     }
                     else
                         fprintf(stderr, "[ERROR] (%s:%d) Unknown activation function %d\n", __FILE__, __LINE__, model.layers[prevLayerIndex].activationFunction);
@@ -531,7 +532,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
     // neuron derivatives are done, the bulk of the work has been done
 
     // adjust weights and biases
-    for (int layerIndex = numLayers - 1; layerIndex > 0; layerIndex--) {
+    for (int layerIndex = numLayers - 1; layerIndex >= 0; layerIndex--) {
 
         // for every neuron in our layer
         for (int i = 0; i < model.layers[layerIndex].outputDim; i++) {
@@ -546,14 +547,18 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
                 double prevValue = layerIndex == 0 ? image->data[j] : neuronValues[layerIndex - 1][j];
 
-                if (model.layers[layerIndex].activationFunction == SIGMOID)
-                    delta *= SigmoidDer(neuronValues[layerIndex][i]) * prevValue;
-                else if (model.layers[layerIndex].activationFunction == RELU)
-                    delta *= ReLUDer(neuronValues[layerIndex][i]) * prevValue;
-                else if (model.layers[layerIndex].activationFunction == SOFTMAX)
-                    delta *= 1 * prevValue; // we have already calculated it
-                else
-                    fprintf(stderr, "[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
+                // we have already added the f^-1 part in the dC/dz part !!!
+
+                delta *= prevValue;
+
+                // if (model.layers[layerIndex].activationFunction == SIGMOID)
+                //     delta *= SigmoidDer(neuronValues[layerIndex][i]) * prevValue;
+                // else if (model.layers[layerIndex].activationFunction == RELU)
+                //     delta *= ReLUDer(neuronValues[layerIndex][i]) * prevValue;
+                // else if (model.layers[layerIndex].activationFunction == SOFTMAX)
+                //     delta *= 1 * prevValue; // we have already calculated it
+                // else
+                //     fprintf(stderr, "[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
 
                 if (VERBOSE_BACKPROP)
                     printf("[LOG] dC/dw=%e (l=%d,i=%d,j=%d)\n", delta, layerIndex, i, j);
@@ -567,14 +572,17 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
             double delta = derBuffer[layerIndex][i];
 
-            if (model.layers[layerIndex].activationFunction == SIGMOID)
-                delta *= SigmoidDer(neuronValues[layerIndex][i]);
-            else if (model.layers[layerIndex].activationFunction == RELU)
-                delta *= ReLUDer(neuronValues[layerIndex][i]);
-            else if (model.layers[layerIndex].activationFunction == SOFTMAX)
-                delta *= 1; // we have already calculated it
-            else
-                printf("[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
+            // we have already added the f^-1 part in the dC/dz part !!!
+
+
+            // if (model.layers[layerIndex].activationFunction == SIGMOID)
+            //     delta *= SigmoidDer(neuronValues[layerIndex][i]);
+            // else if (model.layers[layerIndex].activationFunction == RELU)
+            //     delta *= ReLUDer(neuronValues[layerIndex][i]);
+            // else if (model.layers[layerIndex].activationFunction == SOFTMAX)
+            //     delta *= 1; // we have already calculated it
+            // else
+            //     printf("[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
             
             if (VERBOSE_BACKPROP)
                 printf("[LOG] dC/db=%e (l=%d,i=%d)\n", delta, layerIndex, i);

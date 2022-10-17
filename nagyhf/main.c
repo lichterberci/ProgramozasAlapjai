@@ -32,7 +32,7 @@ int main () {
     //     exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 2, RELU, SOFTMAX);
+    Model model = CreateModel(1, 20, SIGMOID, SOFTMAX);
     
     InitModelToRandom(&model, 1.0);
 
@@ -71,8 +71,8 @@ int main () {
     images[2] = dummyImage3;
     images[3] = dummyImage4;
 
-    const int iterations = 1000000;
-    const double learningRate = 0.01;
+    const int iterations = 10000;
+    const double learningRate = 0.001;
 
     // PrintResult(Predict(model, image.data, NULL));
 
@@ -90,7 +90,7 @@ int main () {
         FitModelForImage(model, &images[0], learningRate);
         FitModelForImage(model, &images[1], learningRate);
         FitModelForImage(model, &images[2], learningRate);
-        FitModelForImage(model, &images[3], learningRate);
+        // FitModelForImage(model, &images[3], learningRate);
 
     }
 
