@@ -5,8 +5,8 @@
 #include "stdlib.h"
 #include "string.h"
 
-#define VERBOSE_BACKPROP 1
-#define VERBOSE_PREDICTION 1
+#define VERBOSE_BACKPROP 0
+#define VERBOSE_PREDICTION 0
 
 int min (int a, int b) { 
     return a < b ? a : b;
@@ -218,6 +218,11 @@ Model CreateModel(int numHiddenLayers, ...) {
     return model;
 }
 
+/// @brief Forwards the given image through the given model, and optionally saves the SUMS of the neurons to a buffer (not the values after the activation function)
+/// @param model the model, with which we want to predict
+/// @param input input image's data
+/// @param out_neuronValues the SUMS!!! of the neurons, so sum(w*n + b)
+/// @return the prediction result
 Result Predict(Model model, double* input, double** out_neuronValues) {
 
     const int numLayers = model.numLayers;
@@ -272,6 +277,15 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
             if (VERBOSE_PREDICTION)
                 printf("[LOG] sum += b=%1.3f\n", bias);
 
+
+            // we want to save the sum, not the value 
+            // (in backprop, we don't need the value, but we need the sum)
+            if (out_neuronValues != NULL)
+                if (out_neuronValues[currentLayerIndex] != NULL)
+                    out_neuronValues[currentLayerIndex][outputIndex] = currentSum;
+                else
+                    fprintf(stderr, "[ERROR] out_neurons is not null, but out_neurons[%d] is!\n", currentLayerIndex);
+
             double value;
 
             if (currentLayerIndex < numLayers - 1) {
@@ -298,13 +312,13 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 
         memcpy(&prevLayerValues, &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
 
-        if (out_neuronValues != NULL) {
-            if (out_neuronValues[currentLayerIndex] != NULL) {
-                memcpy(out_neuronValues[currentLayerIndex], &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
-            } else {
-                printf("[WARNING] out_neuronValues is not null but out_neuronValues[%d] is!\n", currentLayerIndex);
-            }
-        }
+        // if (out_neuronValues != NULL) {
+        //     if (out_neuronValues[currentLayerIndex] != NULL) {
+        //         memcpy(out_neuronValues[currentLayerIndex], &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
+        //     } else {
+        //         printf("[WARNING] out_neuronValues is not null but out_neuronValues[%d] is!\n", currentLayerIndex);
+        //     }
+        // }
     }
 
     // result is in the bottom 10 indicies of prevLayerValues
@@ -396,22 +410,19 @@ void FreeValueBuffer (Model model, double** buffer) {
     free(buffer);
 }
 
-/// @brief implements MSE for a single image
-/// @return MSE cost of the given image with the label
+/// @brief implements cross-entropy algorithm
+/// @brief cross-entropy: -sum(y[i] * log(s[i])) for i: 0..NUM_CLASSES
+/// @return Cross-entropy cost of the given image with the label
 double CalculateCost(uint8_t label, double* resultValues) {
 
     double cost = 0.0;
 
     for (uint8_t i = 0; i < NUM_CLASSES; i++) {
-        
-        if (label == i) // target = 1
-            cost += pow(1 - resultValues[i], 2);
-        else // target = 0
-            cost += pow(0 - resultValues[i], 2);            
+
+        // -sum(y[i] * log(s[i])) = sum(-y[i] * log(s[i]))
+        cost -= (i == label ? 1 : 0) * log2l(resultValues[i]);
     }
 
-    cost /= NUM_CLASSES; // we want the average at the end
-    
     return cost;
 }
 
@@ -422,7 +433,6 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
     if (VERBOSE_BACKPROP)
         printf("---------------------BACKPROP--------------------\n");
-
         
 
     int numLayers = model.numLayers;
@@ -446,21 +456,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
     // we first differentiate the cost function, store the results in derBuffer
     // then we differentiate the softmax function and update derBuffer
-    // note: the softmax derivative should be calculated for every pair!
-
-    // calculate derivative from cost
-    for (int i = 0; i < NUM_CLASSES; i++) {
-        
-        // update the last layer's neuron derivatives by the cost's derivative
-
-        // differentiate the cost function
-
-        derBuffer[numLayers - 1][i] = (2.0 / NUM_CLASSES) * (neuronValues[numLayers - 1][i] - (image->label == i ? 1 : 0));
-
-        if (VERBOSE_BACKPROP)
-            printf("[LOG] cost der: %lf (i=%d) \n", derBuffer[numLayers - 1][i], i);
-    }
-    
+    // note: the softmax derivative should be calculated for every pair!    
 
     // update neurons' derivatives
     for (int layerIndex = numLayers - 1; layerIndex >= 0; layerIndex--) {
@@ -469,25 +465,19 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
             if (layerIndex == numLayers - 1) {
 
-                // differentiate softmax
+                // differentiate softmax and cross-entropy at the same time
 
-                // S = neuronValues[layerIndex]
-                // n = softmax^-1(neuronValues[layerIndex])
-                // gamma = (i == j ? 1 : 0)
-                // ==> dS[i]/dn[j] = S[i](gamma - S[j])
+                // https://towardsdatascience.com/derivative-of-the-softmax-function-and-the-categorical-cross-entropy-loss-ffceefc081d1
 
-                double softMaxDerSum = 0;
+                // y[i]: i == label ? 1 : 0
+                // z: wn + b
+                // s: softmax(z)
+                // --> dC/dz = s - y
 
-                // this is already the softmax derivative as well!!!
-                for (int j = 0; j < NUM_CLASSES; j++) {
-                    uint8_t gamma = i == j ? 1 : 0;
-                    softMaxDerSum += neuronValues[layerIndex][i] * (gamma - neuronValues[layerIndex][j]);
-                }
-                            
-                derBuffer[layerIndex][i] *= softMaxDerSum;
+                derBuffer[layerIndex][i] = neuronValues[layerIndex][i] - (i == image->label ? 1 : 0);
 
                 if (VERBOSE_BACKPROP)
-                    printf("[LOG] dC/dn=%e (l=%d,i=%d)\n", derBuffer[layerIndex][i], layerIndex, i);
+                    printf("[LOG] dC/dz=%e (l=%d,i=%d)\n", derBuffer[layerIndex][i], layerIndex, i);
 
             } else {
 
@@ -495,6 +485,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
                 const int prevLayerIndex = layerIndex + 1;
                 const int prevLayerDim = model.layers[prevLayerIndex].outputDim;
+                // const int layerDim = model.layers[layerIndex].outputDim;
 
                 derBuffer[layerIndex][i] = 0;
 
@@ -515,20 +506,24 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                                 ReLUDer(neuronValues[prevLayerIndex][j]) 
                                 * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
                             );
-                    else if (model.layers[prevLayerIndex].activationFunction == SOFTMAX)
+                    else if (model.layers[prevLayerIndex].activationFunction == SOFTMAX) {
                         delta *= (
-                                neuronValues[prevLayerIndex][j] 
+                                1 // we have already calculated the gradient
                                 * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
                             );
+                        // fprintf(stderr, "[ERROR] Softmax should not be used outside of the last layer!\n");
+                    }
                     else
                         fprintf(stderr, "[ERROR] (%s:%d) Unknown activation function %d\n", __FILE__, __LINE__, model.layers[prevLayerIndex].activationFunction);
                     
 
-                    derBuffer[layerIndex][i] -= delta;
+                    derBuffer[layerIndex][i] += delta; 
+                    // we only calculate the neurons' derivatives
+                    // we don't want to take its negative (cuz it will be hella confusing)
                 }
 
                 if (VERBOSE_BACKPROP)
-                    printf("[LOG] dC/dn=%e (l=%d,i=%d)\n", derBuffer[layerIndex][i], layerIndex, i);
+                    printf("[LOG] dC/dz=%e (l=%d,i=%d)\n", derBuffer[layerIndex][i], layerIndex, i);
             }
         }
     }
@@ -536,7 +531,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
     // neuron derivatives are done, the bulk of the work has been done
 
     // adjust weights and biases
-    for (int layerIndex = 0; layerIndex < numLayers; layerIndex++) {
+    for (int layerIndex = numLayers - 1; layerIndex > 0; layerIndex--) {
 
         // for every neuron in our layer
         for (int i = 0; i < model.layers[layerIndex].outputDim; i++) {
@@ -558,7 +553,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                 else if (model.layers[layerIndex].activationFunction == SOFTMAX)
                     delta *= 1 * prevValue; // we have already calculated it
                 else
-                    printf("[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
+                    fprintf(stderr, "[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
 
                 if (VERBOSE_BACKPROP)
                     printf("[LOG] dC/dw=%e (l=%d,i=%d,j=%d)\n", delta, layerIndex, i, j);
