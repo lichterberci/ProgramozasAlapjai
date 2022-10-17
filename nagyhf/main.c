@@ -72,7 +72,7 @@ int main () {
     images[3] = dummyImage4;
 
     const int iterations = 1000000;
-    const double learningRate = 0.0001;
+    const double learningRate = 0.01;
 
     // PrintResult(Predict(model, image.data, NULL));
 
