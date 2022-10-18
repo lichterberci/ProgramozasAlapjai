@@ -161,7 +161,7 @@ int main () {
     //                        V--- Number of hidden layers, don't forget to update!!!
     // Model model = CreateModel(1, 20, SIGMOID, SOFTMAX);
     
-    TestXORProblem (4, RELU, 1000000, 0.001, 0.2);
+    TestXORProblem (4, RELU, 2000000, 0.001, 0.2);
 
     printf("Code exited safely!");
     return 0;
