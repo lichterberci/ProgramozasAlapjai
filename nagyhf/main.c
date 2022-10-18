@@ -22,6 +22,16 @@ void TestXORProblem (
     double learningRate
 ) {
 
+    if (IMAGE_SIZE != 2) {
+        printf("[WARNING] Set IMAGE_SIZE to 2!\n");
+        return;
+    }
+
+    if (NUM_CLASSES != 2) {
+        printf("[WARNING] Set NUM_CLASSES to 2!\n");
+        return;
+    }
+
     // data
 
     LabeledImage dummyImage1;
@@ -94,18 +104,16 @@ void TestXORProblem (
 
 int main () {
 
-    printf ("start\n");
-
     const char* trainImagePath = "./data/train-images.idx3-ubyte";
     const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
     const char* testImagePath = "./data/t10k-images.idx3-ubyte";
     const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
 
-    // Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
-    // Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
+    Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
+    Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
 
-    // if (trainSet.numData == 0 || testSet.numData == 0)
-    //     exit(-1);
+    if (trainSet.numData == 0 || testSet.numData == 0)
+        exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
     // Model model = CreateModel(1, 20, SIGMOID, SOFTMAX);
