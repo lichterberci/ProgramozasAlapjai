@@ -167,7 +167,7 @@ int main () {
 
     // LETS DO THIS SHIT !!!
     
-    const int numEpochs = 2;
+    const int numEpochs = 5;
     const double learningRate = 0.00001;
 
     printf("Starting learning phase...\n");
@@ -176,7 +176,7 @@ int main () {
         for (int imageIndex = 0; imageIndex < trainSet.numData; imageIndex++) {
             
             if (imageIndex % 1000 == 0) {
-                printf("\33[2K\r");
+                printf("\33[2K\r\033[A");
                 printf("Fitting... epoch: %d/%d image: %5d/%5d\n", epoch, numEpochs, imageIndex, trainSet.numData);
             }
 
@@ -184,7 +184,7 @@ int main () {
         }
     }
     
-    printf("\33[2K\r");
+    printf("\33[2K\r\033[A");
     printf("Learning finished!\n");
 
     printf("Starting calculating accuracy\n"); // line to erase
@@ -194,7 +194,7 @@ int main () {
     for (int i = 0; i < testSet.numData; i++) {
 
         if (i % 1000 == 0) {
-            printf("\33[2K\r");
+            printf("\33[2K\r\033[A");
             printf("Calculating accuracy... (%5d/%5d)\n", i, testSet.numData);
         }
 
@@ -205,7 +205,7 @@ int main () {
             passedTests++;
     }
 
-    printf("\33[2K\r");
+    printf("\33[2K\r\033[A");
     printf("Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
 
     printf("Code exited safely!");
