@@ -202,7 +202,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
     fclose(imageFP);
     fclose(labelFP);
 
-    printf("\33[2K\r\033[A");
+    printf("\33[2K\r");
     printf("[LOG] Loading of dataset finished!\n");
 
     Dataset result = {

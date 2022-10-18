@@ -162,13 +162,13 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 300, RELU, 200, RELU, SOFTMAX);
+    Model model = CreateModel(1, 600, RELU, 400, RELU, SOFTMAX);
 
     InitModelToRandom(&model, 1.0);
 
     // LETS DO THIS SHIT !!!
     
-    const int numEpochs = 3;
+    const int numEpochs = 5;
     const double learningRate = 0.00001;
 
     struct timeval prevThousandStart;
@@ -202,14 +202,14 @@ int main () {
                     sprintf(etaString, "%2.1lfh", etaSecs / 3600);
 
                 printf("\33[2K\r\033[A");
-                printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch, numEpochs, imageIndex, trainSet.numData, etaString);
+                printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString);
             }
 
             FitModelForImage(model, &trainSet.images[imageIndex], learningRate);
         }
     }
     
-    printf("\33[2K\r\033[A");
+    printf("\33[2K\r");
     printf("[LOG] Learning finished!\n");
 
     printf("[LOG] Starting calculating accuracy\n"); // line to erase
@@ -230,7 +230,7 @@ int main () {
             passedTests++;
     }
 
-    printf("\33[2K\r\033[A");
+    printf("\33[2K\r");
     printf("[LOG] Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
 
     printf("Code exited safely!");
