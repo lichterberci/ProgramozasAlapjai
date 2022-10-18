@@ -73,8 +73,6 @@ void TestXORProblem (
             }
         }
 
-        // dummyImage.data[0] = rand() / RAND_MAX;
-
         FitModelForImage(model, &images[0], learningRate);
         FitModelForImage(model, &images[1], learningRate);
         FitModelForImage(model, &images[2], learningRate);
@@ -89,6 +87,9 @@ void TestXORProblem (
     PrintResult(Predict(model, images[2].data, NULL));
     PrintResult(Predict(model, images[3].data, NULL));
 
+    FreeModel(model);
+
+    free(images);
 }
 
 int main () {
