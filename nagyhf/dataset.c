@@ -151,7 +151,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
     for (size_t i = 0; i < numImages; i++) {
 
         if (i % 10000 == 0) {
-            printf("\33[2K\r\033[A");
+            printf("\033[A\33[2K\r");
             fprintf(stdout, "[LOG] Loading data... (%5d/%5d)\n", i, numImages);
         }
 
@@ -202,7 +202,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
     fclose(imageFP);
     fclose(labelFP);
 
-    printf("\33[2K\r");
+    printf("\033[A\33[2K\r");
     printf("[LOG] Loading of dataset finished!\n");
 
     Dataset result = {

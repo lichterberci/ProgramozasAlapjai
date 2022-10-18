@@ -183,7 +183,7 @@ int main () {
 
                 char etaString[200];
 
-                const int remainingIterations = (numEpochs - epoch) * trainSet.numData + (trainSet.numData - imageIndex);
+                const int remainingIterations = (numEpochs - 1 - epoch) * trainSet.numData + (trainSet.numData - 1000 - imageIndex);
 
                 struct timeval now;
                 gettimeofday(&now, NULL);
@@ -201,7 +201,7 @@ int main () {
                 else
                     sprintf(etaString, "%2.1lfh", etaSecs / 3600);
 
-                printf("\33[2K\r\033[A");
+                printf("\033[A\33[2K\r");
                 printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString);
             }
 
@@ -209,7 +209,7 @@ int main () {
         }
     }
     
-    printf("\33[2K\r");
+    printf("\033[A\33[2K\r");
     printf("[LOG] Learning finished!\n");
 
     printf("[LOG] Starting calculating accuracy\n"); // line to erase
@@ -219,7 +219,7 @@ int main () {
     for (int i = 0; i < testSet.numData; i++) {
 
         if (i % 1000 == 0) {
-            printf("\33[2K\r\033[A");
+            printf("\033[A\33[2K\r");
             printf("[LOG] Calculating accuracy... (%5d/%5d)\n", i, testSet.numData);
         }
 
@@ -230,7 +230,7 @@ int main () {
             passedTests++;
     }
 
-    printf("\33[2K\r");
+    printf("\033[A\33[2K\r");
     printf("[LOG] Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
 
     printf("Code exited safely!");
