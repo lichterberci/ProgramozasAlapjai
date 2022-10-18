@@ -12,3 +12,4 @@ all: program
  
 program: $(src)
 	$(CC) -o $(EXECUTABLE) $^ $(LDFLAGS)
+	echo Did you update your hidden layer count?!
