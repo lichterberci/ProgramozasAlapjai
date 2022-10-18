@@ -2,6 +2,7 @@
 #include "stdio.h"
 #include "stdbool.h"
 #include "stdint.h"
+#include "math.h"
 
 #include "dataset.h"
 #include "model.h"
@@ -15,6 +16,7 @@ void PrintImagesInfinitely (Dataset dataset) {
     }
 }
 
+// eg.: TestXORProblem (4, RELU, 1000000, 0.001, 0.2);
 void TestXORProblem (
     int numNeuronsInHiddenLayer, 
     ActivationFunction activationFunction,
@@ -147,21 +149,64 @@ int main () {
 
     srand(0); // set the seed
 
-    // const char* trainImagePath = "./data/train-images.idx3-ubyte";
-    // const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
-    // const char* testImagePath = "./data/t10k-images.idx3-ubyte";
-    // const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
+    const char* trainImagePath = "./data/train-images.idx3-ubyte";
+    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
+    const char* testImagePath = "./data/t10k-images.idx3-ubyte";
+    const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
 
-    // Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
-    // Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
+    Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
+    Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
 
-    // if (trainSet.numData == 0 || testSet.numData == 0)
-    //     exit(-1);
+    if (trainSet.numData == 0 || testSet.numData == 0)
+        exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    // Model model = CreateModel(1, 20, SIGMOID, SOFTMAX);
+    Model model = CreateModel(1, 200, RELU, SOFTMAX);
+
+    InitModelToRandom(&model, 1.0);
+
+    // LETS DO THIS SHIT !!!
     
-    TestXORProblem (4, RELU, 2000000, 0.001, 0.2);
+    const int numEpochs = 2;
+    const double learningRate = 0.00001;
+
+    printf("Starting learning phase...\n");
+
+    for (int epoch = 0; epoch < numEpochs; epoch++) {
+        for (int imageIndex = 0; imageIndex < trainSet.numData; imageIndex++) {
+            
+            if (imageIndex % 1000 == 0) {
+                printf("\33[2K\r");
+                printf("Fitting... epoch: %d/%d image: %5d/%5d\n", epoch, numEpochs, imageIndex, trainSet.numData);
+            }
+
+            FitModelForImage(model, &trainSet.images[imageIndex], learningRate);
+        }
+    }
+    
+    printf("\33[2K\r");
+    printf("Learning finished!\n");
+
+    printf("Starting calculating accuracy\n"); // line to erase
+
+    int passedTests = 0;
+
+    for (int i = 0; i < testSet.numData; i++) {
+
+        if (i % 1000 == 0) {
+            printf("\33[2K\r");
+            printf("Calculating accuracy... (%5d/%5d)\n", i, testSet.numData);
+        }
+
+        LabeledImage testImage = testSet.images[i];
+        Result result = Predict(model, testImage.data, NULL);
+        int prediction = GetPredictionFromResult(result);
+        if (testImage.label == prediction)
+            passedTests++;
+    }
+
+    printf("\33[2K\r");
+    printf("Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
 
     printf("Code exited safely!");
     return 0;

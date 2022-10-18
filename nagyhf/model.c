@@ -12,6 +12,7 @@ int min (int a, int b) {
     return a < b ? a : b;
 }
 
+
 double GetRandomDouble(double min, double max) {
     double result = (double)rand() / RAND_MAX;
     return (result * (max - min)) + min;
@@ -122,7 +123,7 @@ void InitModelToRandom (Model* model, double randomRange) {
     for (size_t i = 0; i < model->numLayers; i++) {
         Layer layer = model->layers[i];
 
-        printf("layer[%d] - inputDIm: %d, outputDim: %d\n", i, layer.inputDim, layer.outputDim);
+        // printf("layer[%d] - inputDIm: %d, outputDim: %d\n", i, layer.inputDim, layer.outputDim);
 
         if (i == 0) {
             if (layer.inputDim != IMAGE_SIZE) {
@@ -226,6 +227,8 @@ Model CreateModel(int numHiddenLayers, ...) {
 /// @return the prediction result
 Result Predict(Model model, double* input, double** out_neuronValues) {
 
+    Result emptyResult;
+
     const int numLayers = model.numLayers;
 
     double prevLayerValues[MAX_LAYER_DIM] = {0};
@@ -253,8 +256,13 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
             );
         }
 
-        int inputDim = currentLayer.inputDim;
-        int outputDim = currentLayer.outputDim;
+        const int inputDim = currentLayer.inputDim;
+        const int outputDim = currentLayer.outputDim;
+
+        if (currentLayer.weights == NULL || currentLayer.biases == NULL) {
+            fprintf(stderr, "[ERROR] Model is not initalized properly! (layer %d)\n", currentLayerIndex);
+            return emptyResult;
+        }
 
         memset(&currentLayerValues, 0, MAX_LAYER_DIM * sizeof(double));
 
@@ -264,7 +272,7 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 
             for (size_t inputIndex = 0; inputIndex < inputDim; inputIndex++) {
 
-                double weight = currentLayer.weights[outputIndex * inputDim + inputIndex];
+                double weight = currentLayer.weights[inputDim * outputIndex + inputIndex];
                 double neuron = prevLayerValues[inputIndex];
                 currentSum += weight * neuron;
 
@@ -620,4 +628,18 @@ double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImage
         avgCost += cost / numImages;
     }
     return avgCost;
+}
+
+/// @brief argmax
+int GetPredictionFromResult(Result result) {
+
+    int maxIndex = 0;
+    double maxValue = result.probs[0];
+
+    for (int i = 1; i <NUM_CLASSES; i++) {
+        if (result.probs[i] > maxValue)  
+            maxIndex = i;
+    }
+
+    return maxIndex;
 }
