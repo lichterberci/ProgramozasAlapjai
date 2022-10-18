@@ -19,7 +19,8 @@ void TestXORProblem (
     int numNeuronsInHiddenLayer, 
     ActivationFunction activationFunction,
     int iterations,
-    double learningRate
+    double learningRate,
+    double maxDeviationFromResult
 ) {
 
     if (IMAGE_SIZE != 2) {
@@ -92,10 +93,50 @@ void TestXORProblem (
 
     PrintModel(model);
 
-    PrintResult(Predict(model, images[0].data, NULL));
-    PrintResult(Predict(model, images[1].data, NULL));
-    PrintResult(Predict(model, images[2].data, NULL));
-    PrintResult(Predict(model, images[3].data, NULL));
+    Result result1 = Predict(model, images[0].data, NULL);
+    PrintResult(result1);
+    if (
+        fabs(result1.probs[0] - 1) <= maxDeviationFromResult
+        && fabs(result1.probs[1] - 0) <= maxDeviationFromResult
+    ) {
+        /* This prints a ✓. */
+        printf("Test 1: PASSED\n");   
+    } else {
+        printf("Test 1: NOT PASSED\n");
+    }
+    Result result2 = Predict(model, images[1].data, NULL);
+    PrintResult(result2);
+    if (
+        fabs(result2.probs[0] - 0) <= maxDeviationFromResult
+        && fabs(result2.probs[1] - 1) <= maxDeviationFromResult
+    ) {
+        /* This prints a ✓. */
+        printf("Test 2: PASSED\n");   
+    } else {
+        printf("Test 2: NOT PASSED\n");
+    }
+    Result result3 = Predict(model, images[2].data, NULL);
+    PrintResult(result3);
+    if (
+        fabs(result3.probs[0] - 0) <= maxDeviationFromResult
+        && fabs(result3.probs[1] - 1) <= maxDeviationFromResult
+    ) {
+        /* This prints a ✓. */
+        printf("Test 3: PASSED\n");   
+    } else {
+        printf("Test 3: NOT PASSED\n");
+    }
+    Result result4 = Predict(model, images[3].data, NULL);
+    PrintResult(result4);
+    if (
+        fabs(result4.probs[0] - 1) <= maxDeviationFromResult
+        && fabs(result4.probs[1] - 0) <= maxDeviationFromResult
+    ) {
+        /* This prints a ✓. */
+        printf("Test 4: PASSED\n");   
+    } else {
+        printf("Test 4: NOT PASSED\n");
+    }
 
     FreeModel(model);
 
@@ -104,21 +145,23 @@ void TestXORProblem (
 
 int main () {
 
-    const char* trainImagePath = "./data/train-images.idx3-ubyte";
-    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
-    const char* testImagePath = "./data/t10k-images.idx3-ubyte";
-    const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
+    srand(0); // set the seed
 
-    Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
-    Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
+    // const char* trainImagePath = "./data/train-images.idx3-ubyte";
+    // const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
+    // const char* testImagePath = "./data/t10k-images.idx3-ubyte";
+    // const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
 
-    if (trainSet.numData == 0 || testSet.numData == 0)
-        exit(-1);
+    // Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
+    // Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
+
+    // if (trainSet.numData == 0 || testSet.numData == 0)
+    //     exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
     // Model model = CreateModel(1, 20, SIGMOID, SOFTMAX);
     
-    TestXORProblem (10, SIGMOID, 1000000, 0.01);
+    TestXORProblem (4, RELU, 1000000, 0.001, 0.2);
 
     printf("Code exited safely!");
     return 0;

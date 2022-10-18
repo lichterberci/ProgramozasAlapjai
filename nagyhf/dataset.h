@@ -4,8 +4,8 @@
 #include "stdio.h"
 #include "stdlib.h"
 
-#define IMAGE_SIZE 28*28
-// #define IMAGE_SIZE 2
+// #define IMAGE_SIZE 28*28
+#define IMAGE_SIZE 2
 #define IMAGE_WIDTH 28
 #define IMAGE_HEIGHT 28
 
