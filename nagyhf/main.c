@@ -162,13 +162,13 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 600, RELU, 400, RELU, SOFTMAX);
+    Model model = CreateModel(3, 700, SIGMOID, 700, SIGMOID, 700, SIGMOID, SOFTMAX);
 
     InitModelToRandom(&model, 1.0);
 
     // LETS DO THIS SHIT !!!
     
-    const int numEpochs = 5;
+    const int numEpochs = 10;
     const double learningRate = 0.00001;
 
     struct timeval prevThousandStart;
@@ -211,6 +211,27 @@ int main () {
     
     printf("\033[A\33[2K\r");
     printf("[LOG] Learning finished!\n");
+
+    printf("[LOG] Starting calculating accuracy\n"); // line to erase
+
+    int passedTestsTraining = 0;
+
+    for (int i = 0; i < trainSet.numData; i++) {
+
+        if (i % 1000 == 0) {
+            printf("\033[A\33[2K\r");
+            printf("[LOG] Calculating accuracy... (%5d/%5d)\n", i, trainSet.numData);
+        }
+
+        LabeledImage testImage = trainSet.images[i];
+        Result result = Predict(model, testImage.data, NULL);
+        int prediction = GetPredictionFromResult(result);
+        if (testImage.label == prediction)
+            passedTestsTraining++;
+    }
+
+    printf("\033[A\33[2K\r");
+    printf("[LOG] Accuracy on training set: %d/%d (%2.2lf%%)\n", passedTestsTraining, trainSet.numData, (passedTestsTraining * 100.0 / trainSet.numData));
 
     printf("[LOG] Starting calculating accuracy\n"); // line to erase
 
