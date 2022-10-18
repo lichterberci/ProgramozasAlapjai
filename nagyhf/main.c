@@ -3,6 +3,7 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "math.h"
+#include "sys/time.h"
 
 #include "dataset.h"
 #include "model.h"
@@ -161,23 +162,47 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 200, RELU, SOFTMAX);
+    Model model = CreateModel(1, 300, RELU, 200, RELU, SOFTMAX);
 
     InitModelToRandom(&model, 1.0);
 
     // LETS DO THIS SHIT !!!
     
-    const int numEpochs = 5;
+    const int numEpochs = 3;
     const double learningRate = 0.00001;
 
-    printf("Starting learning phase...\n");
+    struct timeval prevThousandStart;
+    gettimeofday(&prevThousandStart, NULL);
+
+    printf("[LOG] Starting learning phase...\n");
 
     for (int epoch = 0; epoch < numEpochs; epoch++) {
         for (int imageIndex = 0; imageIndex < trainSet.numData; imageIndex++) {
             
             if (imageIndex % 1000 == 0) {
+
+                char etaString[200];
+
+                const int remainingIterations = (numEpochs - epoch) * trainSet.numData + (trainSet.numData - imageIndex);
+
+                struct timeval now;
+                gettimeofday(&now, NULL);
+
+                double secs = (double)(now.tv_usec - prevThousandStart.tv_usec) / 1000000 + (double)(now.tv_sec - prevThousandStart.tv_sec);
+                
+                prevThousandStart = now;
+
+                double etaSecs = secs * remainingIterations / 1000;
+
+                if (etaSecs <= 60)
+                    sprintf(etaString, "%2.1lfs", etaSecs);
+                else if (etaSecs < 3600)
+                    sprintf(etaString, "%2.1lfm", etaSecs / 60);
+                else
+                    sprintf(etaString, "%2.1lfh", etaSecs / 3600);
+
                 printf("\33[2K\r\033[A");
-                printf("Fitting... epoch: %d/%d image: %5d/%5d\n", epoch, numEpochs, imageIndex, trainSet.numData);
+                printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch, numEpochs, imageIndex, trainSet.numData, etaString);
             }
 
             FitModelForImage(model, &trainSet.images[imageIndex], learningRate);
@@ -185,9 +210,9 @@ int main () {
     }
     
     printf("\33[2K\r\033[A");
-    printf("Learning finished!\n");
+    printf("[LOG] Learning finished!\n");
 
-    printf("Starting calculating accuracy\n"); // line to erase
+    printf("[LOG] Starting calculating accuracy\n"); // line to erase
 
     int passedTests = 0;
 
@@ -195,7 +220,7 @@ int main () {
 
         if (i % 1000 == 0) {
             printf("\33[2K\r\033[A");
-            printf("Calculating accuracy... (%5d/%5d)\n", i, testSet.numData);
+            printf("[LOG] Calculating accuracy... (%5d/%5d)\n", i, testSet.numData);
         }
 
         LabeledImage testImage = testSet.images[i];
@@ -206,7 +231,7 @@ int main () {
     }
 
     printf("\33[2K\r\033[A");
-    printf("Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
+    printf("[LOG] Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
 
     printf("Code exited safely!");
     return 0;
