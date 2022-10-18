@@ -15,30 +15,14 @@ void PrintImagesInfinitely (Dataset dataset) {
     }
 }
 
+void TestXORProblem (
+    int numNeuronsInHiddenLayer, 
+    ActivationFunction activationFunction,
+    int iterations,
+    double learningRate
+) {
 
-int main () {
-
-    printf ("start\n");
-
-    const char* trainImagePath = "./data/train-images.idx3-ubyte";
-    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
-    const char* testImagePath = "./data/t10k-images.idx3-ubyte";
-    const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
-
-    // Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
-    // Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
-
-    // if (trainSet.numData == 0 || testSet.numData == 0)
-    //     exit(-1);
-
-    //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 20, SIGMOID, SOFTMAX);
-    
-    InitModelToRandom(&model, 1.0);
-
-    PrintModel(model);
-
-    // LabeledImage testImage = trainSet.images[0];
+    // data
 
     LabeledImage dummyImage1;
     dummyImage1.data[0] = 0.0;
@@ -60,8 +44,6 @@ int main () {
     dummyImage4.data[1] = 1.0;
     dummyImage4.label = 0;
 
-    // LabeledImage image = testImage;
-
     const int numImages = 4;
 
     LabeledImage* images = malloc(numImages * sizeof(LabeledImage));
@@ -71,10 +53,16 @@ int main () {
     images[2] = dummyImage3;
     images[3] = dummyImage4;
 
-    const int iterations = 10000;
-    const double learningRate = 0.001;
+    // model
 
-    // PrintResult(Predict(model, image.data, NULL));
+    //                        V--- Number of hidden layers, don't forget to update!!!
+    Model model = CreateModel(1, numNeuronsInHiddenLayer, activationFunction, SOFTMAX);
+    
+    InitModelToRandom(&model, 1.0);
+
+    PrintModel(model);
+
+    // fit the model
 
     for (size_t i = 0; i < iterations; i++) {
 
@@ -90,7 +78,7 @@ int main () {
         FitModelForImage(model, &images[0], learningRate);
         FitModelForImage(model, &images[1], learningRate);
         FitModelForImage(model, &images[2], learningRate);
-        // FitModelForImage(model, &images[3], learningRate);
+        FitModelForImage(model, &images[3], learningRate);
 
     }
 
@@ -100,17 +88,28 @@ int main () {
     PrintResult(Predict(model, images[1].data, NULL));
     PrintResult(Predict(model, images[2].data, NULL));
     PrintResult(Predict(model, images[3].data, NULL));
-    
 
-    // for (int i = 0; i < 100; i++)
-    // {
-    //     FitModelForImage(model, &(trainSet.images[0]), 0.001);
-    //     if (i % 10 == 0) {
-    //         Result result = Predict(model, (double*)&(trainSet.images[0].data), NULL);
-    //         //PrintResult(result);
-    //     }
-    // }
+}
+
+int main () {
+
+    printf ("start\n");
+
+    const char* trainImagePath = "./data/train-images.idx3-ubyte";
+    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
+    const char* testImagePath = "./data/t10k-images.idx3-ubyte";
+    const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
+
+    // Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
+    // Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
+
+    // if (trainSet.numData == 0 || testSet.numData == 0)
+    //     exit(-1);
+
+    //                        V--- Number of hidden layers, don't forget to update!!!
+    // Model model = CreateModel(1, 20, SIGMOID, SOFTMAX);
     
+    TestXORProblem (10, SIGMOID, 1000000, 0.01);
 
     printf("Code exited safely!");
     return 0;
