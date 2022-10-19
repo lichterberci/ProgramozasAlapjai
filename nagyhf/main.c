@@ -169,7 +169,7 @@ int main () {
     // LETS DO THIS SHIT !!!
     
     const int numEpochs = 2;
-    const double learningRate = 0.00001;
+    const double learningRate = 0.00001; // should be lower if the model is trained for many epochs
 
     // TODO: add SNAN, INFINITY and -INFINITY checks!!!
 
