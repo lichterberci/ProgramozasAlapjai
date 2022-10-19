@@ -162,14 +162,16 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(2, 300, RELU, 200, RELU, SOFTMAX);
+    Model model = CreateModel(1, 300, RELU, SOFTMAX);
 
     InitModelToRandom(&model, 1.0);
 
     // LETS DO THIS SHIT !!!
     
-    const int numEpochs = 3;
-    const double learningRate = 0.0001;
+    const int numEpochs = 2;
+    const double learningRate = 0.00001;
+
+    // TODO: add SNAN, INFINITY and -INFINITY checks!!!
 
     struct timeval prevThousandStart;
     gettimeofday(&prevThousandStart, NULL);
@@ -253,6 +255,18 @@ int main () {
 
     printf("\033[A\33[2K\r");
     printf("[LOG] Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
+
+    for (int i = 0; i < testSet.numData; i++)
+    {
+        LabeledImage image = testSet.images[i];
+        PrintLabeledImage(image);
+        Result result = Predict(model, image.data, NULL);
+        PrintResult(result);
+        printf("The accuracy fn says: %d\n", GetPredictionFromResult(result));
+        printf("Press anything to continue...\n");
+        getchar();
+    }
+    
 
     printf("Code exited safely!");
     return 0;
