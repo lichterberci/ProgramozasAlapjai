@@ -162,7 +162,7 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(3, 700, SIGMOID, 700, SIGMOID, 700, SIGMOID, SOFTMAX);
+    Model model = CreateModel(3, 700, RELU, 700, RELU, 300, RELU, SOFTMAX);
 
     InitModelToRandom(&model, 1.0);
 
