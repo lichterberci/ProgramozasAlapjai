@@ -705,7 +705,7 @@ Model LoadModelFromFile (const char* filePath) {
 
     if (fp == NULL) {
         fprintf(stderr, "[ERROR] Cannot open file %s\n", filePath);
-        return;
+        return model;
     }
 
     //numLayers
@@ -725,7 +725,7 @@ Model LoadModelFromFile (const char* filePath) {
 
         // activation function
 
-        const int numWeights = model.layers[i].inputDim * model.layers[i].outputDim;
+        fread(&(model.layers[i].activationFunction), sizeof(model.layers[i].activationFunction), 1, fp);
 
         // weights
 
