@@ -162,16 +162,14 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, 300, RELU, SOFTMAX);
+    Model model = CreateModel(2, 700, SIGMOID, 300, SIGMOID, SOFTMAX);
 
     InitModelToRandom(&model, 1.0);
 
     // LETS DO THIS SHIT !!!
     
     const int numEpochs = 2;
-    const double learningRate = 0.00001; // should be lower if the model is trained for many epochs
-
-    // TODO: add SNAN, INFINITY and -INFINITY checks!!!
+    const double learningRate = 0.000001; // should be lower if the model is trained for many epochs
 
     struct timeval prevThousandStart;
     gettimeofday(&prevThousandStart, NULL);
@@ -185,7 +183,7 @@ int main () {
 
                 char etaString[200];
 
-                const int remainingIterations = (numEpochs - 1 - epoch) * trainSet.numData + (trainSet.numData - 1000 - imageIndex);
+                const int remainingIterations = (numEpochs - 1 - epoch) * trainSet.numData + (trainSet.numData - imageIndex);
 
                 struct timeval now;
                 gettimeofday(&now, NULL);
@@ -207,7 +205,12 @@ int main () {
                 printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString);
             }
 
-            FitModelForImage(model, &trainSet.images[imageIndex], learningRate);
+            bool isResultOk = FitModelForImage(model, &trainSet.images[imageIndex], learningRate);
+        
+            if (isResultOk == false) {
+                fprintf(stderr, "[ERROR] Result has ±INFINITY in probs!\n");
+                exit(-1);
+            }
         }
     }
     

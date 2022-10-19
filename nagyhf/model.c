@@ -12,7 +12,6 @@ int min (int a, int b) {
     return a < b ? a : b;
 }
 
-
 double GetRandomDouble(double min, double max) {
     double result = (double)rand() / RAND_MAX;
     return (result * (max - min)) + min;
@@ -608,15 +607,18 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 /// @param model it is ok if it's not a pointer, because the layers variable will still point to the same memory address
 /// @param image 
 /// @param learningRate 
-void FitModelForImage (Model model, LabeledImage* image, double learningRate) {
+/// @returns wether the result is ok or inf/-inf/nan --> true = good, false = stop learning
+bool FitModelForImage (Model model, LabeledImage* image, double learningRate) {
 
-    double** valueBuffer = MakeValueBufferForModel (model.numLayers);
+    double** valueBuffer = MakeValueBufferForModel(model.numLayers);
 
-    Result result = Predict (model, image->data, valueBuffer);
+    Result result = Predict(model, image->data, valueBuffer);
 
-    BackPropagate (model, valueBuffer, image, learningRate);
+    BackPropagate(model, valueBuffer, image, learningRate);
 
-    FreeValueBuffer (model, valueBuffer);
+    FreeValueBuffer(model, valueBuffer);
+
+    return IsResultOk(result);
 }
 
 double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImages) {
@@ -644,3 +646,104 @@ int GetPredictionFromResult(Result result) {
 
     return maxIndex;
 }
+
+bool IsResultOk (Result result) {
+
+    for (int i = 0; i < NUM_CLASSES; i++) {
+        if (result.probs[i] == INFINITY || result.probs[i] == -INFINITY) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void SaveModelToFile (Model model, const char* filePath) {
+
+    FILE* fp = fopen(filePath, "wb");
+
+    if (fp == NULL) {
+        fprintf(stderr, "[ERROR] Cannot open file %s\n", filePath);
+        return;
+    }
+
+    //numLayers
+
+    fwrite(&model.numLayers, sizeof(uint8_t), 1, fp);
+
+    // wandb
+
+    for (uint8_t i = 0; i < model.numLayers; i++) {
+
+        // layer header
+
+        fwrite(&(model.layers[i].inputDim), sizeof(uint32_t), 1, fp);
+        fwrite(&(model.layers[i].outputDim), sizeof(uint32_t), 1, fp);
+
+        // activation function
+
+        fwrite(&(model.layers[i].activationFunction), sizeof(model.layers[i].activationFunction), 1, fp);
+
+        // weights
+
+        const int numWeights = model.layers[i].inputDim * model.layers[i].outputDim;
+        fwrite(&(model.layers[i].weights), sizeof(double), numWeights, fp);
+
+        // biases
+
+        const int numBiases = model.layers[i].outputDim;
+        fwrite(&(model.layers[i].biases), sizeof(double), numBiases, fp);
+    }
+
+    fclose(fp);
+}
+
+Model LoadModelFromFile (const char* filePath) {
+
+    Model model;
+
+    FILE* fp = fopen(filePath, "rb");
+
+    if (fp == NULL) {
+        fprintf(stderr, "[ERROR] Cannot open file %s\n", filePath);
+        return;
+    }
+
+    //numLayers
+
+    fread(&model.numLayers, sizeof(uint8_t), 1, fp);
+
+    model.layers = malloc(model.numLayers * sizeof(Layer));
+
+    // wandb
+
+    for (int i = 0; i < model.numLayers; i++) {
+
+        // layer header
+
+        fread(&(model.layers[i].inputDim), sizeof(model.layers[i].inputDim), 1, fp);
+        fread(&(model.layers[i].outputDim), sizeof(model.layers[i].outputDim), 1, fp);
+
+        // activation function
+
+        const int numWeights = model.layers[i].inputDim * model.layers[i].outputDim;
+
+        // weights
+
+        const int numWeights = model.layers[i].inputDim * model.layers[i].outputDim;
+        
+        model.layers[i].weights = malloc(numWeights * sizeof(double));
+
+        fread(&(model.layers[i].weights), sizeof(double), numWeights, fp);
+
+        // biases
+
+        const int numBiases = model.layers[i].outputDim;
+        
+        model.layers[i].biases = malloc(numWeights * sizeof(double));
+
+        fread(&(model.layers[i].biases), sizeof(double), numBiases, fp);
+    }
+
+    return model;
+}
+
