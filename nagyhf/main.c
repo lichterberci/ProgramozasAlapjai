@@ -162,14 +162,14 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(2, 300, RELU, 100, RELU, SOFTMAX);
+    Model model = CreateModel(2, 200, RELU, 100, RELU, SOFTMAX);
 
     InitModelToRandom(&model, 1.0);
 
     // LETS DO THIS SHIT !!!
     
-    const int numEpochs = 2;
-    const double learningRate = 0.0001; // should be lower if the model is trained for many epochs
+    const int numEpochs = 1;
+    const double learningRate = 0.000000005; // should be lower if the model is trained for many epochs
 
     struct timeval prevThousandStart;
     gettimeofday(&prevThousandStart, NULL);
