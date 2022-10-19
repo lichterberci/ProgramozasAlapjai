@@ -436,7 +436,6 @@ double CalculateCost(uint8_t label, double* resultValues) {
 }
 
 /// @brief Adjusts the model's weights
-/// @param model 
 /// @param neuronValues holds the values of the neurons, filled during the prediction phase
 void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate) {
 
@@ -636,9 +635,11 @@ int GetPredictionFromResult(Result result) {
     int maxIndex = 0;
     double maxValue = result.probs[0];
 
-    for (int i = 1; i <NUM_CLASSES; i++) {
-        if (result.probs[i] > maxValue)  
+    for (int i = 1; i < NUM_CLASSES; i++) {
+        if (result.probs[i] > maxValue) {
             maxIndex = i;
+            maxValue = result.probs[i];
+        }  
     }
 
     return maxIndex;
