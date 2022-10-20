@@ -230,10 +230,13 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 
     const int numLayers = model.numLayers;
 
-    double prevLayerValues[MAX_LAYER_DIM] = {0};
-    double currentLayerValues[MAX_LAYER_DIM] = {0};
+    double prevLayerValuesBuffer[MAX_LAYER_DIM] = {0};
+    double currentLayerValuesBuffer[MAX_LAYER_DIM] = {0};
 
-    memcpy(&prevLayerValues, input, IMAGE_SIZE * sizeof(double));
+    double* prevLayerValues = prevLayerValuesBuffer;
+    double* currentLayerValues = currentLayerValuesBuffer;
+
+    memcpy(prevLayerValues, input, IMAGE_SIZE * sizeof(double));
 
     for (int currentLayerIndex = 0; currentLayerIndex < numLayers; currentLayerIndex++) {
         
@@ -263,7 +266,7 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
             return emptyResult;
         }
 
-        memset(&currentLayerValues, 0, MAX_LAYER_DIM * sizeof(double));
+        // memset(currentLayerValues, 0, MAX_LAYER_DIM * sizeof(double));
 
         for (size_t outputIndex = 0; outputIndex < outputDim; outputIndex++) {
 
@@ -318,7 +321,12 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
         
         // calculated layer, time to move on
 
-        memcpy(&prevLayerValues, &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
+        // memcpy(&prevLayerValues, &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
+
+        // instead of memcpy and memset, we only need to swap pointers, and can ignore the memset
+        double* tmp = currentLayerValues;
+        currentLayerValues = prevLayerValues;
+        prevLayerValues = tmp;
 
         // if (out_neuronValues != NULL) {
         //     if (out_neuronValues[currentLayerIndex] != NULL) {
@@ -335,14 +343,14 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 
     memcpy(&(result.probs), &prevLayerValues, NUM_CLASSES * sizeof(Result));
 
-    // implement softmax
+    // implement stable softmax
 
     /*
     
-    But it is easy to guard against that by using the identity softmax(x) = softmax(x + c) 
+    "But it is easy to guard against that by using the identity softmax(x) = softmax(x + c) 
     which holds for any scalar c: Subtracting max(x) from x leaves a vector 
     that has only non-positive entries, ruling out overflow and at least one element that is zero 
-    ruling out a vanishing denominator (underflow in some but not all entries is harmless).
+    ruling out a vanishing denominator (underflow in some but not all entries is harmless)."
     
     */
 
@@ -362,12 +370,11 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
     for (int i = 0; i < NUM_CLASSES; i++)
         result.probs[i] -= maxTerm;
     
-
     for (int i = 0; i < NUM_CLASSES; i++) {
         sumOfLayerExp += exp(result.probs[i]);
     }
 
-    sumOfLayerExp += 0.00001; // anti zero
+    sumOfLayerExp += 0.00001; // anti zero --> it should not be a problem anyway, but just in case
 
     if (VERBOSE_PREDICTION)
         printf("[VERBOSE] sumexp: %e\n", sumOfLayerExp);
@@ -428,7 +435,7 @@ double CalculateCost(uint8_t label, double* resultValues) {
     for (uint8_t i = 0; i < NUM_CLASSES; i++) {
 
         // -sum(y[i] * log(s[i])) = sum(-y[i] * log(s[i]))
-        cost -= (i == label ? 1 : 0) * log2l(resultValues[i]);
+        cost -= (i == label ? 1 : 0) * log2l(resultValues[i] + 0.001); // +0.001 because log(0) is -inf
     }
 
     return cost;
@@ -436,7 +443,7 @@ double CalculateCost(uint8_t label, double* resultValues) {
 
 /// @brief Adjusts the model's weights
 /// @param neuronValues holds the values of the neurons, filled during the prediction phase
-void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate) {
+void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate, double** preallocatedDerBuffer) {
 
     if (VERBOSE_BACKPROP)
         printf("---------------------BACKPROP--------------------\n");
@@ -459,7 +466,12 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
     if (VERBOSE_BACKPROP)
         printf("[VERBOSE] cost: %e\n", cost);
 
-    double** derBuffer = MakeValueBufferForModel(model.numLayers);
+    double** derBuffer;
+
+    if (preallocatedDerBuffer == NULL)
+        derBuffer = MakeValueBufferForModel(model.numLayers);
+    else
+        derBuffer = preallocatedDerBuffer;
 
     // we first differentiate the cost function, store the results in derBuffer
     // then we differentiate the softmax function and update derBuffer
@@ -597,7 +609,8 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
         }
     }
 
-    FreeValueBuffer(model, derBuffer);
+    if (preallocatedDerBuffer == NULL)
+        FreeValueBuffer(model, derBuffer);
 
     if (VERBOSE_BACKPROP)
         printf("--------------------------------------------------\n");
@@ -608,15 +621,21 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 /// @param image 
 /// @param learningRate 
 /// @returns wether the result is ok or inf/-inf/nan --> true = good, false = stop learning
-bool FitModelForImage (Model model, LabeledImage* image, double learningRate) {
+bool FitModelForImage (Model model, LabeledImage* image, double learningRate, double** preallocatedValueBuffer, double** preallocatedDerBuffer) {
 
-    double** valueBuffer = MakeValueBufferForModel(model.numLayers);
+    double** valueBuffer;
+
+    if (preallocatedValueBuffer == NULL)
+        valueBuffer = MakeValueBufferForModel(model.numLayers);
+    else
+        valueBuffer = preallocatedValueBuffer;
 
     Result result = Predict(model, image->data, valueBuffer);
 
-    BackPropagate(model, valueBuffer, image, learningRate);
+    BackPropagate(model, valueBuffer, image, learningRate, preallocatedDerBuffer);
 
-    FreeValueBuffer(model, valueBuffer);
+    if (preallocatedDerBuffer == NULL)
+        FreeValueBuffer(model, valueBuffer);
 
     return IsResultOk(result);
 }

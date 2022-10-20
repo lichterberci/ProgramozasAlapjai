@@ -87,10 +87,10 @@ void TestXORProblem (
             }
         }
 
-        FitModelForImage(model, &images[0], learningRate);
-        FitModelForImage(model, &images[1], learningRate);
-        FitModelForImage(model, &images[2], learningRate);
-        FitModelForImage(model, &images[3], learningRate);
+        FitModelForImage(model, &images[0], learningRate, NULL, NULL);
+        FitModelForImage(model, &images[1], learningRate, NULL, NULL);
+        FitModelForImage(model, &images[2], learningRate, NULL, NULL);
+        FitModelForImage(model, &images[3], learningRate, NULL, NULL);
 
     }
 
@@ -146,42 +146,52 @@ void TestXORProblem (
     free(images);
 }
 
-int main () {
+double GetAccuracy (Model model, Dataset dataset) {
 
-    srand(0); // set the seed
+    printf("[LOG] Starting measuring accuracy\n"); // line to erase
 
-    const char* trainImagePath = "./data/train-images.idx3-ubyte";
-    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
-    const char* testImagePath = "./data/t10k-images.idx3-ubyte";
-    const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
+    int passedTests = 0;
 
-    Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
-    Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
+    for (int i = 0; i < dataset.numData; i++) {
 
-    if (trainSet.numData == 0 || testSet.numData == 0)
-        exit(-1);
+        if (i % 1000 == 0) {
+            printf("\033[A\33[2K\r");
+            printf("[LOG] Measuring accuracy... (%5d/%5d)\n", i, dataset.numData);
+        }
 
-    //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(2, 200, RELU, 100, RELU, SOFTMAX);
+        LabeledImage testImage = dataset.images[i];
 
-    InitModelToRandom(&model, 1.0);
+        Result result = Predict(model, testImage.data, NULL);
 
-    // LETS DO THIS SHIT !!!
-    
-    const int numEpochs = 1;
-    const double learningRate = 0.000000005; // should be lower if the model is trained for many epochs
+        int prediction = GetPredictionFromResult(result);
+
+        if (testImage.label == prediction)
+            passedTests++;
+    }
+
+    printf("\033[A\33[2K\r");
+    printf("[LOG] Done measuring accuracy!!\n");
+
+    return (double)passedTests / dataset.numData;
+}
+
+void FitModel (Model model, Dataset trainSet, Dataset testSet, uint8_t numEpochs, double learningRate) {
 
     struct timeval prevThousandStart;
     gettimeofday(&prevThousandStart, NULL);
 
     printf("[LOG] Starting learning phase...\n");
 
+    // preallocate buffers to speed up computations
+    double** valueBuffer = MakeValueBufferForModel(model.numLayers);
+    double** derBuffer = MakeValueBufferForModel(model.numLayers);
+
     for (int epoch = 0; epoch < numEpochs; epoch++) {
         for (int imageIndex = 0; imageIndex < trainSet.numData; imageIndex++) {
             
             if (imageIndex % 1000 == 0) {
 
-                char etaString[200];
+                char etaString[20];
 
                 const int remainingIterations = (numEpochs - 1 - epoch) * trainSet.numData + (trainSet.numData - imageIndex);
 
@@ -205,71 +215,79 @@ int main () {
                 printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString);
             }
 
-            bool isResultOk = FitModelForImage(model, &trainSet.images[imageIndex], learningRate);
+            bool isResultOk = FitModelForImage(model, &trainSet.images[imageIndex], learningRate, valueBuffer, derBuffer);
         
             if (isResultOk == false) {
                 fprintf(stderr, "[ERROR] Result has ±INFINITY in probs!\n");
                 exit(-1);
             }
         }
+
+        double accuracy = GetAccuracy(model, testSet);
+        printf("\033[A\33[2K\r");
+        printf("\033[A\33[2K\r");
+        printf("[LOG] Finished epoch %d! (acc: %2.1lf%%)\n", epoch + 1, accuracy * 100);
+        printf("\n"); // line to delete
     }
     
     printf("\033[A\33[2K\r");
     printf("[LOG] Learning finished!\n");
 
-    printf("[LOG] Starting calculating accuracy\n"); // line to erase
+    FreeValueBuffer(model, valueBuffer);
+    FreeValueBuffer(model, derBuffer);
 
-    int passedTestsTraining = 0;
+}
 
-    for (int i = 0; i < trainSet.numData; i++) {
+void PrintImagesWithPredictions (Model model, Dataset dataset) {
 
-        if (i % 1000 == 0) {
-            printf("\033[A\33[2K\r");
-            printf("[LOG] Calculating accuracy... (%5d/%5d)\n", i, trainSet.numData);
-        }
-
-        LabeledImage testImage = trainSet.images[i];
-        Result result = Predict(model, testImage.data, NULL);
-        int prediction = GetPredictionFromResult(result);
-        if (testImage.label == prediction)
-            passedTestsTraining++;
-    }
-
-    printf("\033[A\33[2K\r");
-    printf("[LOG] Accuracy on training set: %d/%d (%2.2lf%%)\n", passedTestsTraining, trainSet.numData, (passedTestsTraining * 100.0 / trainSet.numData));
-
-    printf("[LOG] Starting calculating accuracy\n"); // line to erase
-
-    int passedTests = 0;
-
-    for (int i = 0; i < testSet.numData; i++) {
-
-        if (i % 1000 == 0) {
-            printf("\033[A\33[2K\r");
-            printf("[LOG] Calculating accuracy... (%5d/%5d)\n", i, testSet.numData);
-        }
-
-        LabeledImage testImage = testSet.images[i];
-        Result result = Predict(model, testImage.data, NULL);
-        int prediction = GetPredictionFromResult(result);
-        if (testImage.label == prediction)
-            passedTests++;
-    }
-
-    printf("\033[A\33[2K\r");
-    printf("[LOG] Accuracy: %d/%d (%2.2lf%%)\n", passedTests, testSet.numData, (passedTests * 100.0 / testSet.numData));
-
-    for (int i = 0; i < testSet.numData; i++)
+    for (int i = 0; i < dataset.numData; i++)
     {
-        LabeledImage image = testSet.images[i];
+        LabeledImage image = dataset.images[i];
         PrintLabeledImage(image);
+
         Result result = Predict(model, image.data, NULL);
         PrintResult(result);
+
         printf("The accuracy fn says: %d\n", GetPredictionFromResult(result));
-        printf("Press anything to continue...\n");
-        getchar();
+        
+        printf("Press Q to quit, anything else to continue...\n");
+        char c = fgetc(stdin);
+        if (c == 'q' || c == 'Q')
+            return;
     }
+}
+
+int main () {
+
+    srand(0); // set the seed
+
+    const char* trainImagePath = "./data/train-images.idx3-ubyte";
+    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
+    const char* testImagePath = "./data/t10k-images.idx3-ubyte";
+    const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
+
+    Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
+    Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
+
+    if (trainSet.numData == 0 || testSet.numData == 0)
+        exit(-1);
+
+    //                        V--- Number of hidden layers, don't forget to update!!!
+    Model model = CreateModel(2, 1, RELU, 1, RELU, SOFTMAX);
+    InitModelToRandom(&model, 1.0);
     
+    const int numEpochs = 3;
+    const double learningRate = 1e-6; // should be lower if the model is trained for many epochs
+
+    FitModel(model, trainSet, testSet, numEpochs, learningRate);
+    
+    double trainAccuracy = GetAccuracy(model, trainSet);
+    printf("[LOG] Accuracy on the training set: %2.1lf%%\n", trainAccuracy * 100);
+    
+    double testAccuracy = GetAccuracy(model, testSet);
+    printf("[LOG] Accuracy on the test set: %2.1lf%%\n", testAccuracy * 100);
+
+    PrintImagesWithPredictions(model, testSet);
 
     printf("Code exited safely!");
     return 0;

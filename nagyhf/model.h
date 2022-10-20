@@ -58,8 +58,8 @@ Model CreateModel(int numHiddenLayers, ...);
 
 Result Predict(Model model, double* input, double** out_neuronValues);
 double CalculateCost(uint8_t label, double* resultValues);
-void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate);
-bool FitModelForImage (Model model, LabeledImage* image, double learningRate);
+void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate, double** preallocatedDerBuffer);
+bool FitModelForImage (Model model, LabeledImage* image, double learningRate, double** preallocatedValueBuffer, double** preallocatedDerBuffer);
 double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImages);
 int GetPredictionFromResult(Result result);
 bool IsResultOk (Result result);
