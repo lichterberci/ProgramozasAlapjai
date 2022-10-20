@@ -273,11 +273,11 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(2, 1, RELU, 1, RELU, SOFTMAX);
+    Model model = CreateModel(3, 800, RELU, 800, RELU, 200, RELU, SOFTMAX);
     InitModelToRandom(&model, 1.0);
     
-    const int numEpochs = 3;
-    const double learningRate = 1e-6; // should be lower if the model is trained for many epochs
+    const int numEpochs = 1;
+    const double learningRate = 1e-9; // should be lower if the model is trained for many epochs
 
     FitModel(model, trainSet, testSet, numEpochs, learningRate);
     
