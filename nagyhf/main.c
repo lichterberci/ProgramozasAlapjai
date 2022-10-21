@@ -193,7 +193,7 @@ int main (int argc, char **argv) {
             model = CreateModelFromLayout(layerLayout);
             InitModelToRandom(&model, 1.0);
         } else {
-            fprintf(stderr, "[ERROR] Model layout ignored because the model was loaded!\n");
+            printf("[WARNING] Model layout ignored because the model was loaded!\n");
         }
 
         layerLayoutHead = layerLayout;
