@@ -50,6 +50,7 @@ double ReLU (double x);
 double ReLUDer (double x);
 
 void PrintModel(Model model);
+void PrintModelLayout(Model model);
 void PrintResult(Result result);
 void FreeModel(Model model);
 void FreeLayer(Layer layer);
