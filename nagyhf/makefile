@@ -2,7 +2,7 @@
 CC = gcc
 LDFLAGS=-lgdi32
  
-EXECUTABLE = main
+EXECUTABLE = mnist
 
 src = $(wildcard *.c) $(wildcard *.h)
 

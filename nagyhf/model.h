@@ -41,6 +41,12 @@ typedef struct {
 } Model;
 
 typedef struct {
+    uint32_t numNeurons;
+    ActivationFunction activationFunction;
+    struct LayerLayout* next; // for linked lists
+} LayerLayout;
+
+typedef struct {
     double probs[NUM_CLASSES];
 } Result;
 
@@ -56,6 +62,7 @@ void FreeModel(Model model);
 void FreeLayer(Layer layer);
 void InitModelToRandom (Model* model, double randomRange);
 Model CreateModel(int numHiddenLayers, ...);
+Model CreateModelFromLayout(LayerLayout* layout);
 
 Result Predict(Model model, double* input, double** out_neuronValues);
 double CalculateCost(uint8_t label, double* resultValues);

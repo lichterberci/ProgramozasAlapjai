@@ -3,263 +3,203 @@
 #include "stdbool.h"
 #include "stdint.h"
 #include "math.h"
-#include "sys/time.h"
+#include "string.h"
 
 #include "dataset.h"
 #include "model.h"
+#include "manager.h"
 
+typedef enum {
+    GENERAL, MODEL, LAYER
+} ArgReadState;
 
-void PrintImagesInfinitely (Dataset dataset) {
-    for (int i = 0; i < dataset.numData; i++)  {
-        PrintLabeledImage(dataset.images[i]);
-        printf("For next image press [Enter]...\n");
-        getchar();    
-    }
-}
+#define DEFAULT_NUM_NEURONS 200
+#define DEFAULT_ACTIVATION_FUNCTION RELU
+#define DEFAULT_NUM_EPOCHS 1
+#define DEFAULT_LEARNING_RATE 0.000001
 
-// eg.: TestXORProblem (4, RELU, 1000000, 0.001, 0.2);
-void TestXORProblem (
-    int numNeuronsInHiddenLayer, 
-    ActivationFunction activationFunction,
-    int iterations,
-    double learningRate,
-    double maxDeviationFromResult
-) {
+int main (int argc, char **argv) {
 
-    if (IMAGE_SIZE != 2) {
-        printf("[WARNING] Set IMAGE_SIZE to 2!\n");
-        return;
-    }
+    // default behaviour:
+    // train a new model of (200, RELU) hidden-layer structure
+    // for 1 epoch with a learning rate of 1e-7
 
-    if (NUM_CLASSES != 2) {
-        printf("[WARNING] Set NUM_CLASSES to 2!\n");
-        return;
-    }
+    // general args:
+    // --version
+    // --help
+    // --train
+    // --test-accuracy
+    // --show-images
+    // -num-epochs [NUM_EPOCHS]
+    // -learning-rate [LEARNING_RATE] --> xe-y pl.: 2e-5
 
-    // data
+    // model args:
+    // -seed [SEED]
+    // -load [PATH] 
+    // -model -layer 800 RELU -layer 400 SIGMOID
+    // -save [PATH]
 
-    LabeledImage dummyImage1;
-    dummyImage1.data[0] = 0.0;
-    dummyImage1.data[1] = 0.0;
-    dummyImage1.label = 0;
+    srand(0); // default seed
 
-    LabeledImage dummyImage2;
-    dummyImage2.data[0] = 0.0;
-    dummyImage2.data[1] = 1.0;
-    dummyImage2.label = 1;
+    ArgReadState state = GENERAL;
 
-    LabeledImage dummyImage3;
-    dummyImage3.data[0] = 1.0;
-    dummyImage3.data[1] = 0.0;
-    dummyImage3.label = 1;
+    char savePath[100];
+    char loadPath[100];
+    bool saveModelAfter = false;
+    bool loadModelBefore = false;
 
-    LabeledImage dummyImage4;
-    dummyImage4.data[0] = 1.0;
-    dummyImage4.data[1] = 1.0;
-    dummyImage4.label = 0;
+    bool shouldTrain = true; // default behaviour
+    bool shouldShowImages = false;
+    bool shouldTestAccuracy = false;
+    bool shouldTestXOR = false;
 
-    const int numImages = 4;
+    int numEpochs = DEFAULT_NUM_EPOCHS; // default
+    double learningRate = DEFAULT_LEARNING_RATE; // default
 
-    LabeledImage* images = malloc(numImages * sizeof(LabeledImage));
+    LayerLayout * layerLayout = NULL;
+    LayerLayout * layerLayoutHead = NULL;
 
-    images[0] = dummyImage1;
-    images[1] = dummyImage2;
-    images[2] = dummyImage3;
-    images[3] = dummyImage4;
-
-    // model
-
-    //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(1, numNeuronsInHiddenLayer, activationFunction, SOFTMAX);
-    
-    InitModelToRandom(&model, 1.0);
-
-    PrintModel(model);
-
-    // fit the model
-
-    for (size_t i = 0; i < iterations; i++) {
-
-        if (iterations >= 100) {
-            if (i % (iterations / 100) == 0) {
-                double avgCost = CalculateAvgCostForModel (model, images, numImages);
-                printf("%2d%% - avg. cost: %e\n", i * 100 / iterations, avgCost);
+    for (int i = 1; i < argc; i++) {
+        if (state == MODEL) {
+            if (strcmp(argv[i], "-layer") == 0) {
+                state = LAYER;
+                continue;
             }
+            state = GENERAL;
         }
-
-        FitModelForImage(model, &images[0], learningRate, NULL, NULL);
-        FitModelForImage(model, &images[1], learningRate, NULL, NULL);
-        FitModelForImage(model, &images[2], learningRate, NULL, NULL);
-        FitModelForImage(model, &images[3], learningRate, NULL, NULL);
-
-    }
-
-    PrintModel(model);
-
-    Result result1 = Predict(model, images[0].data, NULL);
-    PrintResult(result1);
-    if (
-        fabs(result1.probs[0] - 1) <= maxDeviationFromResult
-        && fabs(result1.probs[1] - 0) <= maxDeviationFromResult
-    ) {
-        /* This prints a ✓. */
-        printf("Test 1: PASSED\n");   
-    } else {
-        printf("Test 1: NOT PASSED\n");
-    }
-    Result result2 = Predict(model, images[1].data, NULL);
-    PrintResult(result2);
-    if (
-        fabs(result2.probs[0] - 0) <= maxDeviationFromResult
-        && fabs(result2.probs[1] - 1) <= maxDeviationFromResult
-    ) {
-        /* This prints a ✓. */
-        printf("Test 2: PASSED\n");   
-    } else {
-        printf("Test 2: NOT PASSED\n");
-    }
-    Result result3 = Predict(model, images[2].data, NULL);
-    PrintResult(result3);
-    if (
-        fabs(result3.probs[0] - 0) <= maxDeviationFromResult
-        && fabs(result3.probs[1] - 1) <= maxDeviationFromResult
-    ) {
-        /* This prints a ✓. */
-        printf("Test 3: PASSED\n");   
-    } else {
-        printf("Test 3: NOT PASSED\n");
-    }
-    Result result4 = Predict(model, images[3].data, NULL);
-    PrintResult(result4);
-    if (
-        fabs(result4.probs[0] - 1) <= maxDeviationFromResult
-        && fabs(result4.probs[1] - 0) <= maxDeviationFromResult
-    ) {
-        /* This prints a ✓. */
-        printf("Test 4: PASSED\n");   
-    } else {
-        printf("Test 4: NOT PASSED\n");
-    }
-
-    FreeModel(model);
-
-    free(images);
-}
-
-double GetAccuracy (Model model, Dataset dataset) {
-
-    printf("[LOG] Starting measuring accuracy\n"); // line to erase
-
-    int passedTests = 0;
-
-    for (int i = 0; i < dataset.numData; i++) {
-
-        if (i % 1000 == 0) {
-            printf("\033[A\33[2K\r");
-            printf("[LOG] Measuring accuracy... (%5d/%5d)\n", i, dataset.numData);
+        if (state == GENERAL) {
+            if (strcmp(argv[i], "--version") == 0) {
+                printf("version: 1.0.0\n");
+                return 0;
+            }
+            if (strcmp(argv[i], "--help") == 0) {
+                printf("Possible arguments:\n");
+                printf("\t--help\n");
+                printf("\t--version\n");
+                printf("\t--train\n");
+                printf("\t--test-accuracy\n");
+                printf("\t--show-images\n");
+                printf("\t-seed [SEED]\n");
+                printf("\t-save [PATH]\n");
+                printf("\t-load [PATH]\n");
+                printf("\t-model [LAYERS?]\n");
+                printf("\t-layer [NUM_NEURONS] [ACTIVATION_FUNCTION]\n");
+                printf("\t-num-epochs [NUM_EPOCHS]\n");
+                printf("\t-learning-rate [LEARNING_RATE]\n");
+                return 0;
+            }
+            if (strcmp(argv[1], "--train") == 0) {
+                shouldTrain = true;
+                continue;
+            }
+            if (strcmp(argv[1], "--test-accuracy") == 0) {
+                shouldTestAccuracy = true;
+                continue;
+            }
+            if (strcmp(argv[1], "--show-images") == 0) {
+                shouldShowImages = true;
+                continue;
+            }
+            if (strcmp(argv[i], "-seed") == 0) {
+                if (++i >= argc) { { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }  exit(-1); }
+                srand(atoi(argv[i]));
+                continue;
+            }
+            if (strcmp(argv[i], "-model") == 0) {
+                state = MODEL;
+                continue;
+            }
+            if (strcmp(argv[i], "-save") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                strcpy(savePath, argv[i]);
+                saveModelAfter = true;
+                continue;
+            }
+            if (strcmp(argv[i], "-load") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                strcpy(loadPath, argv[i]);
+                loadModelBefore = true;
+                continue;
+            }
+            if (strcmp(argv[i], "-learning-rate") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                int scalar, power;
+                int numRead = sscanf(argv[i], "%de-%d", &scalar, &power);
+                if (numRead != 2) {
+                    fprintf(stderr, "[ERROR] Invalid format! (format: xe-y, pl.: 3e-2)\n");
+                    continue;
+                }
+                learningRate = scalar * pow(10, -power);
+                continue;
+            }
+            if (strcmp(argv[i], "-num-epochs") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                numEpochs = atoi(argv[i]);
+                continue;
+            }
+            fprintf(stderr, "[ERROR] Invalid argument '%s'!\n", argv[i]);
+            continue;
         }
+        if (state == LAYER) {
+            int numNeurons = atoi(argv[i]);
+            if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+            ActivationFunction actfn;
+            if (strcmp(argv[i], "RELU")) {
+                actfn = RELU;
+            } else if (strcmp(argv[i], "SIGMOID")) {
+                actfn = SIGMOID;
+            } else {
+                fprintf(stderr, "[ERROR] Invalid activation function '%s'!\n", argv[i]);
+            } 
+            LayerLayout* addedLayerLayout = malloc(sizeof(LayerLayout));
+            addedLayerLayout->numNeurons = numNeurons;
+            addedLayerLayout->activationFunction = actfn;
+            addedLayerLayout->next = NULL;
 
-        LabeledImage testImage = dataset.images[i];
-
-        Result result = Predict(model, testImage.data, NULL);
-
-        int prediction = GetPredictionFromResult(result);
-
-        if (testImage.label == prediction)
-            passedTests++;
-    }
-
-    printf("\033[A\33[2K\r");
-    printf("[LOG] Done measuring accuracy!!\n");
-
-    return (double)passedTests / dataset.numData;
-}
-
-void FitModel (Model model, Dataset trainSet, Dataset testSet, uint8_t numEpochs, double learningRate) {
-
-    struct timeval prevThousandStart;
-    gettimeofday(&prevThousandStart, NULL);
-
-    printf("[LOG] Starting learning phase...\n");
-
-    // preallocate buffers to speed up computations
-    double** valueBuffer = MakeValueBufferForModel(model.numLayers);
-    double** derBuffer = MakeValueBufferForModel(model.numLayers);
-
-    for (int epoch = 0; epoch < numEpochs; epoch++) {
-        for (int imageIndex = 0; imageIndex < trainSet.numData; imageIndex++) {
-            
-            if (imageIndex % 1000 == 0) {
-
-                char etaString[20];
-
-                const int remainingIterations = (numEpochs - 1 - epoch) * trainSet.numData + (trainSet.numData - imageIndex);
-
-                struct timeval now;
-                gettimeofday(&now, NULL);
-
-                double secs = (double)(now.tv_usec - prevThousandStart.tv_usec) / 1000000 + (double)(now.tv_sec - prevThousandStart.tv_sec);
-                
-                prevThousandStart = now;
-
-                double etaSecs = secs * remainingIterations / 1000;
-
-                if (etaSecs <= 60)
-                    sprintf(etaString, "%2.1lfs", etaSecs);
-                else if (etaSecs < 3600)
-                    sprintf(etaString, "%2.1lfm", etaSecs / 60);
-                else
-                    sprintf(etaString, "%2.1lfh", etaSecs / 3600);
-
-                printf("\033[A\33[2K\r");
-                printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString);
+            if (addedLayerLayout == NULL) {
+                layerLayoutHead = addedLayerLayout;
+                layerLayout = addedLayerLayout;
+            } else {
+                layerLayoutHead->next = addedLayerLayout;
+                layerLayoutHead = addedLayerLayout;
             }
 
-            bool isResultOk = FitModelForImage(model, &trainSet.images[imageIndex], learningRate, valueBuffer, derBuffer);
-        
-            if (isResultOk == false) {
-                fprintf(stderr, "[ERROR] Result has ±INFINITY in probs!\n");
-                exit(-1);
-            }
+            state = MODEL;
+            continue;
+        }
+    }
+
+    Model model;
+
+    if (loadModelBefore) {
+        model = LoadModelFromFile(loadPath);
+    }
+
+    if (layerLayout != NULL) {
+
+        // loading has the higher priority
+        if (loadModelBefore == false) {
+            model = CreateModelFromLayout(layerLayout);
+            InitModelToRandom(&model, 1.0);
+        } else {
+            fprintf(stderr, "[ERROR] Model layout ignored because the model was loaded!\n");
         }
 
-        double accuracy = GetAccuracy(model, testSet);
-        printf("\033[A\33[2K\r");
-        printf("\033[A\33[2K\r");
-        printf("[LOG] Finished epoch %d! (acc: %2.1lf%%)\n", epoch + 1, accuracy * 100);
-        printf("\n"); // line to delete
+        layerLayoutHead = layerLayout;
+        // free layout list
+        while (layerLayoutHead != NULL) {
+            LayerLayout* tmp = layerLayoutHead->next;
+            free(layerLayoutHead);
+            layerLayoutHead = tmp;
+        }
+        free(layerLayout);
     }
-    
-    printf("\033[A\33[2K\r");
-    printf("[LOG] Learning finished!\n");
 
-    FreeValueBuffer(model, valueBuffer);
-    FreeValueBuffer(model, derBuffer);
-
-}
-
-void PrintImagesWithPredictions (Model model, Dataset dataset) {
-
-    for (int i = 0; i < dataset.numData; i++)
-    {
-        LabeledImage image = dataset.images[i];
-        PrintLabeledImage(image);
-
-        Result result = Predict(model, image.data, NULL);
-        PrintResult(result);
-
-        printf("The accuracy fn says: %d\n", GetPredictionFromResult(result));
-        
-        printf("Press Q to quit, anything else to continue...\n");
-        char c = fgetc(stdin);
-        if (c == 'q' || c == 'Q')
-            return;
+    if (model.numLayers == 0) {
+        // default model
+        model = CreateModel (1, DEFAULT_NUM_NEURONS, DEFAULT_ACTIVATION_FUNCTION, SOFTMAX);
+        InitModelToRandom(&model, 1.0);
     }
-}
-
-int main () {
-
-    srand(0); // set the seed
 
     const char* trainImagePath = "./data/train-images.idx3-ubyte";
     const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
@@ -273,21 +213,25 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(2, 800, RELU, 800, RELU, SOFTMAX);
-    InitModelToRandom(&model, 1.0);
+    //Model model = CreateModel(2, 1, RELU, 1, RELU, SOFTMAX);
+    //InitModelToRandom(&model, 1.0);
     
-    const int numEpochs = 5;
-    const double learningRate = 1 * pow(10, -7); // should be lower if the model is trained for many epochs
+    // const int numEpochs = 1;
+    // const double learningRate = 1 * pow(10, -7); // should be lower if the model is trained for many epochs
 
-    FitModel(model, trainSet, testSet, numEpochs, learningRate);
+    if (shouldTrain)
+        FitModel(model, trainSet, testSet, numEpochs, learningRate);
     
-    double trainAccuracy = GetAccuracy(model, trainSet);
-    printf("[LOG] Accuracy on the training set: %2.1lf%%\n", trainAccuracy * 100);
-    
-    double testAccuracy = GetAccuracy(model, testSet);
-    printf("[LOG] Accuracy on the test set: %2.1lf%%\n", testAccuracy * 100);
+    if (shouldTestAccuracy) {
+        double trainAccuracy = GetAccuracy(model, trainSet);
+        printf("[LOG] Accuracy on the training set: %2.1lf%%\n", trainAccuracy * 100);
+        
+        double testAccuracy = GetAccuracy(model, testSet);
+        printf("[LOG] Accuracy on the test set: %2.1lf%%\n", testAccuracy * 100);
+    }
 
-    PrintImagesWithPredictions(model, testSet);
+    if (shouldShowImages)
+        PrintImagesWithPredictions(model, testSet);
 
     printf("Code exited safely!");
     return 0;
