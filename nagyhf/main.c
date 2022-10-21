@@ -13,15 +13,23 @@ typedef enum {
     GENERAL, MODEL, LAYER
 } ArgReadState;
 
+#define DEFAULT_NUM_NEURONS 200
+#define DEFAULT_ACTIVATION_FUNCTION RELU
+#define DEFAULT_NUM_EPOCHS 1
+#define DEFAULT_LEARNING_RATE 0.000001
 
 int main (int argc, char **argv) {
+
+    // default behaviour:
+    // train a new model of (200, RELU) hidden-layer structure
+    // for 1 epoch with a learning rate of 1e-7
 
     // general args:
     // --version
     // --help
-    // --train TODO:
-    // --test-accuracy TODO:
-    // --show-images TODO:
+    // --train
+    // --test-accuracy
+    // --show-images
     // -num-epochs [NUM_EPOCHS]
     // -learning-rate [LEARNING_RATE] --> xe-y pl.: 2e-5
 
@@ -31,6 +39,8 @@ int main (int argc, char **argv) {
     // -model -layer 800 RELU -layer 400 SIGMOID
     // -save [PATH]
 
+    srand(0); // default seed
+
     ArgReadState state = GENERAL;
 
     char savePath[100];
@@ -38,8 +48,13 @@ int main (int argc, char **argv) {
     bool saveModelAfter = false;
     bool loadModelBefore = false;
 
-    int numEpochs = 1; // default
-    double learningRate = 0.000001; // default
+    bool shouldTrain = true; // default behaviour
+    bool shouldShowImages = false;
+    bool shouldTestAccuracy = false;
+    bool shouldTestXOR = false;
+
+    int numEpochs = DEFAULT_NUM_EPOCHS; // default
+    double learningRate = DEFAULT_LEARNING_RATE; // default
 
     LayerLayout * layerLayout = NULL;
     LayerLayout * layerLayoutHead = NULL;
@@ -61,6 +76,9 @@ int main (int argc, char **argv) {
                 printf("Possible arguments:\n");
                 printf("\t--help\n");
                 printf("\t--version\n");
+                printf("\t--train\n");
+                printf("\t--test-accuracy\n");
+                printf("\t--show-images\n");
                 printf("\t-seed [SEED]\n");
                 printf("\t-save [PATH]\n");
                 printf("\t-load [PATH]\n");
@@ -70,8 +88,20 @@ int main (int argc, char **argv) {
                 printf("\t-learning-rate [LEARNING_RATE]\n");
                 return 0;
             }
+            if (strcmp(argv[1], "--train") == 0) {
+                shouldTrain = true;
+                continue;
+            }
+            if (strcmp(argv[1], "--test-accuracy") == 0) {
+                shouldTestAccuracy = true;
+                continue;
+            }
+            if (strcmp(argv[1], "--show-images") == 0) {
+                shouldShowImages = true;
+                continue;
+            }
             if (strcmp(argv[i], "-seed") == 0) {
-                if (++i >= argc) fprintf(stderr, "[ERROR] Invalid number of arguments!\n");
+                if (++i >= argc) { { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }  exit(-1); }
                 srand(atoi(argv[i]));
                 continue;
             }
@@ -80,19 +110,19 @@ int main (int argc, char **argv) {
                 continue;
             }
             if (strcmp(argv[i], "-save") == 0) {
-                if (++i >= argc) fprintf(stderr, "[ERROR] Invalid number of arguments!\n");
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
                 strcpy(savePath, argv[i]);
                 saveModelAfter = true;
                 continue;
             }
             if (strcmp(argv[i], "-load") == 0) {
-                if (++i >= argc) fprintf(stderr, "[ERROR] Invalid number of arguments!\n");
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
                 strcpy(loadPath, argv[i]);
                 loadModelBefore = true;
                 continue;
             }
             if (strcmp(argv[i], "-learning-rate") == 0) {
-                if (++i >= argc) fprintf(stderr, "[ERROR] Invalid number of arguments!\n");
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
                 int scalar, power;
                 int numRead = sscanf(argv[i], "%de-%d", &scalar, &power);
                 if (numRead != 2) {
@@ -103,7 +133,7 @@ int main (int argc, char **argv) {
                 continue;
             }
             if (strcmp(argv[i], "-num-epochs") == 0) {
-                if (++i >= argc) fprintf(stderr, "[ERROR] Invalid number of arguments!\n");
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
                 numEpochs = atoi(argv[i]);
                 continue;
             }
@@ -112,7 +142,7 @@ int main (int argc, char **argv) {
         }
         if (state == LAYER) {
             int numNeurons = atoi(argv[i]);
-            if (++i >= argc) fprintf(stderr, "[ERROR] Invalid number of arguments!\n");
+            if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
             ActivationFunction actfn;
             if (strcmp(argv[i], "RELU")) {
                 actfn = RELU;
@@ -165,7 +195,11 @@ int main (int argc, char **argv) {
         free(layerLayout);
     }
 
-    srand(0); // set the seed
+    if (model.numLayers == 0) {
+        // default model
+        model = CreateModel (1, DEFAULT_NUM_NEURONS, DEFAULT_ACTIVATION_FUNCTION, SOFTMAX);
+        InitModelToRandom(&model, 1.0);
+    }
 
     const char* trainImagePath = "./data/train-images.idx3-ubyte";
     const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
@@ -185,15 +219,19 @@ int main (int argc, char **argv) {
     // const int numEpochs = 1;
     // const double learningRate = 1 * pow(10, -7); // should be lower if the model is trained for many epochs
 
-    FitModel(model, trainSet, testSet, numEpochs, learningRate);
+    if (shouldTrain)
+        FitModel(model, trainSet, testSet, numEpochs, learningRate);
     
-    double trainAccuracy = GetAccuracy(model, trainSet);
-    printf("[LOG] Accuracy on the training set: %2.1lf%%\n", trainAccuracy * 100);
-    
-    double testAccuracy = GetAccuracy(model, testSet);
-    printf("[LOG] Accuracy on the test set: %2.1lf%%\n", testAccuracy * 100);
+    if (shouldTestAccuracy) {
+        double trainAccuracy = GetAccuracy(model, trainSet);
+        printf("[LOG] Accuracy on the training set: %2.1lf%%\n", trainAccuracy * 100);
+        
+        double testAccuracy = GetAccuracy(model, testSet);
+        printf("[LOG] Accuracy on the test set: %2.1lf%%\n", testAccuracy * 100);
+    }
 
-    PrintImagesWithPredictions(model, testSet);
+    if (shouldShowImages)
+        PrintImagesWithPredictions(model, testSet);
 
     printf("Code exited safely!");
     return 0;
