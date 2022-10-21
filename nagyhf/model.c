@@ -70,7 +70,7 @@ void PrintModel(Model model) {
                 "softmax" : "Unknown"
             );
 
-        printf("\tLayer[%d] (indim=%d, outdim=%d, act.fn=%s)\n", 
+        printf("\tLayer[%d] (%d, %d, %s)\n", 
             i, 
             model.layers[i].inputDim, 
             model.layers[i].outputDim, 
@@ -115,6 +115,28 @@ void PrintModel(Model model) {
 
         printf("]\n");
     }
+}
+
+void PrintModelLayout(Model model) {
+
+    printf("Model:\n");
+    for (int i = 0; i < model.numLayers; i++) {
+
+        const char* activationFunctionString = (
+                model.layers[i].activationFunction == SIGMOID ? 
+                "sigmoid" : model.layers[i].activationFunction == RELU ?
+                "ReLU" : model.layers[i].activationFunction == SOFTMAX ?
+                "softmax" : "Unknown"
+            );
+
+        printf("\tLayer[%d] (%d, %d, %s)\n", 
+            i, 
+            model.layers[i].inputDim, 
+            model.layers[i].outputDim, 
+            activationFunctionString
+        );
+    }
+
 }
 
 void InitModelToRandom (Model* model, double randomRange) {
