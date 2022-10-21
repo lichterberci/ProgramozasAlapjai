@@ -61,6 +61,10 @@ void FreeLayer(Layer layer) {
 void PrintModel(Model model) {
 
     printf("Model:\n");
+
+    if (model.numLayers == 0)
+        printf("\tEmpty");
+
     for (int i = 0; i < model.numLayers; i++) {
 
         const char* activationFunctionString = (
@@ -120,6 +124,10 @@ void PrintModel(Model model) {
 void PrintModelLayout(Model model) {
 
     printf("Model:\n");
+
+    if (model.numLayers == 0)
+        printf("\tEmpty");
+
     for (int i = 0; i < model.numLayers; i++) {
 
         const char* activationFunctionString = (
@@ -204,7 +212,7 @@ Model CreateModel(int numHiddenLayers, ...) {
     va_list ap;
     int numParams = numHiddenLayers * 2 + 1;
     
-    va_start(ap, numParams);
+    va_start(ap, numHiddenLayers); // 2nd param: last arg
 
     int prevLayerDim = IMAGE_SIZE;
 
@@ -243,7 +251,7 @@ Model CreateModel(int numHiddenLayers, ...) {
 
 Model CreateModelFromLayout(LayerLayout* layout) {
 
-    Model model;
+    Model model = {0, NULL};
     LayerLayout* currentLayerLayout = layout;
 
     // calculate numLayers
@@ -268,8 +276,8 @@ Model CreateModelFromLayout(LayerLayout* layout) {
         prevLayerDim = layer.outputDim;
 
         layer.activationFunction = currentLayerLayout->activationFunction;
-        layer.weights = malloc(layer.inputDim * layer.outputDim * sizeof(double));
-        layer.biases = malloc(layer.outputDim * sizeof(double));
+        layer.weights = NULL;
+        layer.biases = NULL;
         
         model.layers[layerIndex++] = layer;
 
@@ -281,8 +289,8 @@ Model CreateModelFromLayout(LayerLayout* layout) {
     lastLayer.inputDim = prevLayerDim;
     lastLayer.outputDim = NUM_CLASSES;
     lastLayer.activationFunction = SOFTMAX;
-    lastLayer.weights = malloc(lastLayer.inputDim * lastLayer.outputDim * sizeof(double));
-    lastLayer.biases = malloc(lastLayer.outputDim * sizeof(double));
+    lastLayer.weights = NULL;
+    lastLayer.biases = NULL;
     model.layers[layerIndex] = lastLayer;
 
     return model;
@@ -749,6 +757,8 @@ void SaveModelToFile (Model model, const char* filePath) {
 
     FILE* fp = fopen(filePath, "wb");
 
+    printf("[LOG] Saving model to [\"%s\"]...\n", filePath);
+
     if (fp == NULL) {
         fprintf(stderr, "[ERROR] Cannot open file %s\n", filePath);
         return;
@@ -782,6 +792,9 @@ void SaveModelToFile (Model model, const char* filePath) {
         fwrite(model.layers[i].biases, sizeof(double), numBiases, fp);
     }
 
+    printf("\033[A\33[2K\r");
+    printf("[LOG] Model successfully saved to [\"%s\"]!\n", filePath);
+
     fclose(fp);
 }
 
@@ -790,6 +803,8 @@ Model LoadModelFromFile (const char* filePath) {
     Model model;
 
     FILE* fp = fopen(filePath, "rb");
+
+    printf("[LOG] Loading model from [\"%s\"]...\n", filePath);
 
     if (fp == NULL) {
         fprintf(stderr, "[ERROR] Cannot open file %s\n", filePath);
@@ -832,6 +847,11 @@ Model LoadModelFromFile (const char* filePath) {
 
         fread(model.layers[i].biases, sizeof(double), numBiases, fp);
     }
+
+    printf("\033[A\33[2K\r");
+    printf("[LOG] Model successfully loaded from [\"%s\"]!\n", filePath);
+
+    fclose(fp);
 
     return model;
 }

@@ -20,10 +20,6 @@ typedef enum {
 
 int main (int argc, char **argv) {
 
-    // default behaviour:
-    // train a new model of (200, RELU) hidden-layer structure
-    // for 1 epoch with a learning rate of 1e-7
-
     // general args:
     // --version
     // --help
@@ -48,7 +44,7 @@ int main (int argc, char **argv) {
     bool saveModelAfter = false;
     bool loadModelBefore = false;
 
-    bool shouldTrain = true; // default behaviour
+    bool shouldTrain = false;
     bool shouldShowImages = false;
     bool shouldTestAccuracy = false;
     bool shouldTestXOR = false;
@@ -88,15 +84,15 @@ int main (int argc, char **argv) {
                 printf("\t-learning-rate [LEARNING_RATE]\n");
                 return 0;
             }
-            if (strcmp(argv[1], "--train") == 0) {
+            if (strcmp(argv[i], "--train") == 0) {
                 shouldTrain = true;
                 continue;
             }
-            if (strcmp(argv[1], "--test-accuracy") == 0) {
+            if (strcmp(argv[i], "--test-accuracy") == 0) {
                 shouldTestAccuracy = true;
                 continue;
             }
-            if (strcmp(argv[1], "--show-images") == 0) {
+            if (strcmp(argv[i], "--show-images") == 0) {
                 shouldShowImages = true;
                 continue;
             }
@@ -138,25 +134,33 @@ int main (int argc, char **argv) {
                 continue;
             }
             fprintf(stderr, "[ERROR] Invalid argument '%s'!\n", argv[i]);
-            continue;
+            exit(-1);
         }
         if (state == LAYER) {
-            int numNeurons = atoi(argv[i]);
+            int numNeurons;
+
+            if (sscanf(argv[i], "%d", &numNeurons) == 0) {
+                state = GENERAL;
+                i--; // we want to look at this again
+                continue;
+            }
+
             if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
             ActivationFunction actfn;
-            if (strcmp(argv[i], "RELU")) {
+            if (strcmp(argv[i], "RELU") == 0 || strcmp(argv[i], "relu") == 0) {
                 actfn = RELU;
-            } else if (strcmp(argv[i], "SIGMOID")) {
+            } else if (strcmp(argv[i], "SIGMOID") == 0 || strcmp(argv[i], "sigmoid") == 0) {
                 actfn = SIGMOID;
             } else {
                 fprintf(stderr, "[ERROR] Invalid activation function '%s'!\n", argv[i]);
+                exit(-1);
             } 
             LayerLayout* addedLayerLayout = malloc(sizeof(LayerLayout));
             addedLayerLayout->numNeurons = numNeurons;
             addedLayerLayout->activationFunction = actfn;
             addedLayerLayout->next = NULL;
 
-            if (addedLayerLayout == NULL) {
+            if (layerLayoutHead == NULL) {
                 layerLayoutHead = addedLayerLayout;
                 layerLayout = addedLayerLayout;
             } else {
@@ -169,7 +173,14 @@ int main (int argc, char **argv) {
         }
     }
 
-    Model model;
+    if (shouldTrain == false && shouldTestAccuracy == false && shouldShowImages == false) {
+        printf("[WARNING] No actions selected!\n");
+        return 0;
+    }
+
+    Model model = {
+        0, NULL
+    };
 
     if (loadModelBefore) {
         model = LoadModelFromFile(loadPath);
@@ -201,6 +212,8 @@ int main (int argc, char **argv) {
         InitModelToRandom(&model, 1.0);
     }
 
+    PrintModelLayout(model);
+
     const char* trainImagePath = "./data/train-images.idx3-ubyte";
     const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
     const char* testImagePath = "./data/t10k-images.idx3-ubyte";
@@ -229,6 +242,9 @@ int main (int argc, char **argv) {
         double testAccuracy = GetAccuracy(model, testSet);
         printf("[LOG] Accuracy on the test set: %2.1lf%%\n", testAccuracy * 100);
     }
+
+    if (saveModelAfter) 
+        SaveModelToFile(model, savePath);
 
     if (shouldShowImages)
         PrintImagesWithPredictions(model, testSet);

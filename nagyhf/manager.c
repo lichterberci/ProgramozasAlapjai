@@ -256,7 +256,7 @@ void PrintImagesWithPredictions (Model model, Dataset dataset) {
 
         printf("The accuracy fn says: %d\n", GetPredictionFromResult(result));
         
-        printf("Press Q to quit, anything else to continue...\n");
+        printf("Type in Q to quit, anything else to continue...\n");
         char c = fgetc(stdin);
         if (c == 'q' || c == 'Q')
             return;
