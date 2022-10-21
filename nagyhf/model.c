@@ -5,8 +5,8 @@
 #include "stdlib.h"
 #include "string.h"
 
-#define VERBOSE_BACKPROP 0
 #define VERBOSE_PREDICTION 0
+#define VERBOSE_BACKPROP 0
 
 int min (int a, int b) { 
     return a < b ? a : b;
@@ -307,13 +307,10 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 
     const int numLayers = model.numLayers;
 
-    double prevLayerValuesBuffer[MAX_LAYER_DIM] = {0};
-    double currentLayerValuesBuffer[MAX_LAYER_DIM] = {0};
+    double prevLayerValues[MAX_LAYER_DIM] = {0};
+    double currentLayerValues[MAX_LAYER_DIM] = {0};
 
-    double* prevLayerValues = prevLayerValuesBuffer;
-    double* currentLayerValues = currentLayerValuesBuffer;
-
-    memcpy(prevLayerValues, input, IMAGE_SIZE * sizeof(double));
+    memcpy(&prevLayerValues, input, IMAGE_SIZE * sizeof(double));
 
     for (int currentLayerIndex = 0; currentLayerIndex < numLayers; currentLayerIndex++) {
         
@@ -343,7 +340,7 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
             return emptyResult;
         }
 
-        // memset(currentLayerValues, 0, MAX_LAYER_DIM * sizeof(double));
+        memset(&currentLayerValues, 0, MAX_LAYER_DIM * sizeof(double));
 
         for (size_t outputIndex = 0; outputIndex < outputDim; outputIndex++) {
 
@@ -398,12 +395,12 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
         
         // calculated layer, time to move on
 
-        // memcpy(&prevLayerValues, &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
+        memcpy(&prevLayerValues, &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
 
         // instead of memcpy and memset, we only need to swap pointers, and can ignore the memset
-        double* tmp = currentLayerValues;
-        currentLayerValues = prevLayerValues;
-        prevLayerValues = tmp;
+        // double* tmp = currentLayerValues;
+        // currentLayerValues = prevLayerValues;
+        // prevLayerValues = tmp;
 
         // if (out_neuronValues != NULL) {
         //     if (out_neuronValues[currentLayerIndex] != NULL) {
@@ -512,7 +509,7 @@ double CalculateCost(uint8_t label, double* resultValues) {
     for (uint8_t i = 0; i < NUM_CLASSES; i++) {
 
         // -sum(y[i] * log(s[i])) = sum(-y[i] * log(s[i]))
-        cost -= (i == label ? 1 : 0) * log2l(resultValues[i] + 0.001); // +0.001 because log(0) is -inf
+        cost -= (i == label ? 1 : 0) * log2l(resultValues[i] + 0.01); // +0.001 because log(0) is -inf
     }
 
     return cost;
@@ -520,12 +517,11 @@ double CalculateCost(uint8_t label, double* resultValues) {
 
 /// @brief Adjusts the model's weights
 /// @param neuronValues holds the values of the neurons, filled during the prediction phase
-void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate, double** preallocatedDerBuffer) {
+void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate, double** preallocatedDerBuffer, double* out_cost) {
 
     if (VERBOSE_BACKPROP)
         printf("---------------------BACKPROP--------------------\n");
         
-
     int numLayers = model.numLayers;
 
     if (neuronValues == NULL) {
@@ -542,6 +538,9 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
     if (VERBOSE_BACKPROP)
         printf("[VERBOSE] cost: %e\n", cost);
+
+    if (out_cost != NULL)
+        *out_cost = cost;
 
     double** derBuffer;
 
@@ -585,7 +584,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
                 derBuffer[layerIndex][i] = 0;
 
-                for (int j = 0; j < model.layers[prevLayerIndex].outputDim; j++) {
+                for (int j = 0; j < prevLayerDim; j++) {
                     
                     // dE/dn[l] = dE/dn[l+1] * dn[l+1]/dn[l]
                     //                         dn[l+1][i]/dn[l][j] = f'(neuronValue[l+1][j]) * layers[l+1].weights[i, j]
@@ -612,7 +611,6 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                     else
                         fprintf(stderr, "[ERROR] (%s:%d) Unknown activation function %d\n", __FILE__, __LINE__, model.layers[prevLayerIndex].activationFunction);
                     
-
                     derBuffer[layerIndex][i] += delta; 
                     // we only calculate the neurons' derivatives
                     // we don't want to take its negative (cuz it will be hella confusing)
@@ -698,7 +696,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 /// @param image 
 /// @param learningRate 
 /// @returns wether the result is ok or inf/-inf/nan --> true = good, false = stop learning
-bool FitModelForImage (Model model, LabeledImage* image, double learningRate, double** preallocatedValueBuffer, double** preallocatedDerBuffer) {
+bool FitModelForImage (Model model, LabeledImage* image, double learningRate, double** preallocatedValueBuffer, double** preallocatedDerBuffer, double* out_cost) {
 
     double** valueBuffer;
 
@@ -709,10 +707,10 @@ bool FitModelForImage (Model model, LabeledImage* image, double learningRate, do
 
     Result result = Predict(model, image->data, valueBuffer);
 
-    BackPropagate(model, valueBuffer, image, learningRate, preallocatedDerBuffer);
+    BackPropagate(model, valueBuffer, image, learningRate, preallocatedDerBuffer, out_cost);
 
-    if (preallocatedDerBuffer == NULL)
-        FreeValueBuffer(model, valueBuffer);
+    if (IsResultOk(result) == false)
+        PrintResult(result);
 
     return IsResultOk(result);
 }
@@ -746,7 +744,7 @@ int GetPredictionFromResult(Result result) {
 bool IsResultOk (Result result) {
 
     for (int i = 0; i < NUM_CLASSES; i++) {
-        if (result.probs[i] == INFINITY || result.probs[i] == -INFINITY) {
+        if (finite(result.probs[i]) == false) {
             return false;
         }
     }

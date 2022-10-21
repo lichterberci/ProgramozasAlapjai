@@ -87,10 +87,10 @@ void TestXORProblem (
             }
         }
 
-        FitModelForImage(model, &images[0], learningRate, NULL, NULL);
-        FitModelForImage(model, &images[1], learningRate, NULL, NULL);
-        FitModelForImage(model, &images[2], learningRate, NULL, NULL);
-        FitModelForImage(model, &images[3], learningRate, NULL, NULL);
+        FitModelForImage(model, &images[0], learningRate, NULL, NULL, NULL);
+        FitModelForImage(model, &images[1], learningRate, NULL, NULL, NULL);
+        FitModelForImage(model, &images[2], learningRate, NULL, NULL, NULL);
+        FitModelForImage(model, &images[3], learningRate, NULL, NULL, NULL);
 
     }
 
@@ -192,6 +192,8 @@ void FitModel (
     double** valueBuffer = MakeValueBufferForModel(model.numLayers);
     double** derBuffer = MakeValueBufferForModel(model.numLayers);
 
+    double avgCost = 0.0;
+
     for (int epoch = 0; epoch < numEpochs; epoch++) {
         for (int imageIndex = 0; imageIndex < trainSet.numData; imageIndex++) {
             
@@ -218,13 +220,19 @@ void FitModel (
                     sprintf(etaString, "%2.1lfh", etaSecs / 3600);
 
                 printf("\033[A\33[2K\r");
-                printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s)\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString);
+                printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s) [avg. cost: %e]\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString, avgCost);
+            
+                avgCost = 0.0;
             }
 
-            bool isResultOk = FitModelForImage(model, &trainSet.images[imageIndex], learningRate, valueBuffer, derBuffer);
+            double cost;
+
+            bool isResultOk = FitModelForImage(model, &trainSet.images[imageIndex], learningRate, valueBuffer, derBuffer, &cost);
         
+            avgCost += cost / 1000;
+
             if (isResultOk == false) {
-                fprintf(stderr, "[ERROR] Result has ±INFINITY in probs!\n");
+                fprintf(stderr, "[ERROR] Result has +/-INFINITY in probs!\n");
                 exit(-1);
             }
         }
