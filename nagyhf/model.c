@@ -219,6 +219,53 @@ Model CreateModel(int numHiddenLayers, ...) {
     return model;
 }
 
+Model CreateModelFromLayout(LayerLayout* layout) {
+
+    Model model;
+    LayerLayout* currentLayerLayout = layout;
+
+    // calculate numLayers
+    while (currentLayerLayout != NULL) {
+        model.numLayers++;
+        currentLayerLayout = currentLayerLayout->next;
+    }
+
+    model.numLayers++; // we have a non-hidden layer at the end
+
+    model.layers = malloc(model.numLayers * sizeof(Layer));
+
+    // populate hidden-layers
+    currentLayerLayout = layout;
+    int layerIndex = 0;
+    uint32_t prevLayerDim = IMAGE_SIZE;
+    while (currentLayerLayout != NULL) {
+        Layer layer;
+
+        layer.inputDim = prevLayerDim;
+        layer.outputDim = currentLayerLayout->numNeurons;
+        prevLayerDim = layer.outputDim;
+
+        layer.activationFunction = currentLayerLayout->activationFunction;
+        layer.weights = malloc(layer.inputDim * layer.outputDim * sizeof(double));
+        layer.biases = malloc(layer.outputDim * sizeof(double));
+        
+        model.layers[layerIndex++] = layer;
+
+        currentLayerLayout = currentLayerLayout->next;
+    }
+
+    // add last layer (not hidden layer)
+    Layer lastLayer;
+    lastLayer.inputDim = prevLayerDim;
+    lastLayer.outputDim = NUM_CLASSES;
+    lastLayer.activationFunction = SOFTMAX;
+    lastLayer.weights = malloc(lastLayer.inputDim * lastLayer.outputDim * sizeof(double));
+    lastLayer.biases = malloc(lastLayer.outputDim * sizeof(double));
+    model.layers[layerIndex] = lastLayer;
+
+    return model;
+}
+
 /// @brief Forwards the given image through the given model, and optionally saves the SUMS of the neurons to a buffer (not the values after the activation function)
 /// @param model the model, with which we want to predict
 /// @param input input image's data
@@ -732,8 +779,6 @@ Model LoadModelFromFile (const char* filePath) {
     fread(&model.numLayers, sizeof(uint8_t), 1, fp);
 
     model.layers = malloc(model.numLayers * sizeof(Layer));
-
-    printf("numLayers: %d\n", model.numLayers);
 
     // wandb
 
