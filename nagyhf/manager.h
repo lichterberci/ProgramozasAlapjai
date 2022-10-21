@@ -1,5 +1,6 @@
 #include "dataset.h"
 #include "model.h"
+#include "stdint.h"
 
 void PrintImagesInfinitely (Dataset dataset);
 void TestXORProblem (

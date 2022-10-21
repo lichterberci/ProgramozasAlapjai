@@ -8,7 +8,41 @@
 #include "model.h"
 #include "manager.h"
 
-int main () {
+typedef enum {
+    GENERAL, MODEL, LAYER
+} ArgReadState;
+
+int main (int argc, char **argv) {
+
+    // general args:
+    // --version
+    // --help
+    // --train
+    // --test-accuracy
+    // --show-images
+
+    // model args:
+    // -seed [SEED]
+    // -load [PATH] 
+    // -model -layer 800 RELU 400 SIGMOID
+    // -save [PATH]
+
+    ArgReadState state = GENERAL;
+
+    for (int i = 1; i < argc; i++) {
+        if (state == GENERAL) {
+            if (strcmp(argv[i], "-seed") == 0) {
+                if (++i >= argc) fprintf(stderr, "[ERROR] Invalid number of arguments!\n");
+                srand(atoi(argv[i]));
+                continue;
+            }
+            if (strcmp(argv[i], "-model") == 0) {
+                state = MODEL;
+                continue;
+            }
+
+        }
+    }
 
     srand(0); // set the seed
 
@@ -24,8 +58,13 @@ int main () {
         exit(-1);
 
     //                        V--- Number of hidden layers, don't forget to update!!!
-    Model model = CreateModel(2, 800, RELU, 800, RELU, SOFTMAX);
+    Model model = CreateModel(2, 1, RELU, 1, RELU, SOFTMAX);
     InitModelToRandom(&model, 1.0);
+
+    PrintModel(model);
+    SaveModelToFile(model, "./test.model");
+    Model model2 = LoadModelFromFile("./test.model");
+    PrintModel(model2);
     
     const int numEpochs = 1;
     const double learningRate = 1 * pow(10, -7); // should be lower if the model is trained for many epochs

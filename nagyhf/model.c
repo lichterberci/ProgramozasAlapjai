@@ -705,12 +705,12 @@ void SaveModelToFile (Model model, const char* filePath) {
         // weights
 
         const int numWeights = model.layers[i].inputDim * model.layers[i].outputDim;
-        fwrite(&(model.layers[i].weights), sizeof(double), numWeights, fp);
+        fwrite(model.layers[i].weights, sizeof(double), numWeights, fp);
 
         // biases
 
         const int numBiases = model.layers[i].outputDim;
-        fwrite(&(model.layers[i].biases), sizeof(double), numBiases, fp);
+        fwrite(model.layers[i].biases, sizeof(double), numBiases, fp);
     }
 
     fclose(fp);
@@ -733,18 +733,20 @@ Model LoadModelFromFile (const char* filePath) {
 
     model.layers = malloc(model.numLayers * sizeof(Layer));
 
+    printf("numLayers: %d\n", model.numLayers);
+
     // wandb
 
     for (int i = 0; i < model.numLayers; i++) {
 
         // layer header
 
-        fread(&(model.layers[i].inputDim), sizeof(model.layers[i].inputDim), 1, fp);
-        fread(&(model.layers[i].outputDim), sizeof(model.layers[i].outputDim), 1, fp);
+        fread(&(model.layers[i].inputDim), sizeof(uint32_t), 1, fp);
+        fread(&(model.layers[i].outputDim), sizeof(uint32_t), 1, fp);
 
         // activation function
 
-        fread(&(model.layers[i].activationFunction), sizeof(model.layers[i].activationFunction), 1, fp);
+        fread(&(model.layers[i].activationFunction), sizeof(ActivationFunction), 1, fp);
 
         // weights
 
@@ -752,7 +754,8 @@ Model LoadModelFromFile (const char* filePath) {
         
         model.layers[i].weights = malloc(numWeights * sizeof(double));
 
-        fread(&(model.layers[i].weights), sizeof(double), numWeights, fp);
+        fread(model.layers[i].weights, sizeof(double), numWeights, fp);
+
 
         // biases
 
@@ -760,7 +763,7 @@ Model LoadModelFromFile (const char* filePath) {
         
         model.layers[i].biases = malloc(numWeights * sizeof(double));
 
-        fread(&(model.layers[i].biases), sizeof(double), numBiases, fp);
+        fread(model.layers[i].biases, sizeof(double), numBiases, fp);
     }
 
     return model;
