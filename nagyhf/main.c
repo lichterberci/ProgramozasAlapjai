@@ -79,7 +79,7 @@ int main (int argc, char **argv) {
                 printf("\t--train\n");
                 printf("\t--test-accuracy\n");
                 printf("\t--show-images\n");
-                printf("\t--show-only-wrong-images\n");
+                printf("\t--only-wrong-images\n");
                 printf("\t--save-continuously\n");
                 printf("\t-seed [SEED]\n");
                 printf("\t-save [PATH]\n");
@@ -194,7 +194,7 @@ int main (int argc, char **argv) {
     }
 
     if (shouldTrain == false && shouldTestAccuracy == false && shouldShowImages == false) {
-        printf("[WARNING] No actions selected!\n");
+        printf("[WARNING] No action selected!\n");
         return 0;
     }
 
