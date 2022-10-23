@@ -1,0 +1,103 @@
+Date : 2022-10-23 22:41:26
+Directory : e:\ProgramozasAlapjai\ProgramozasAlapjai
+Total : 45 files,  4967 codes, 182 comments, 1087 blanks, all 6236 lines
+
+Languages
++------------+------------+------------+------------+------------+------------+
+| language   | files      | code       | comment    | blank      | total      |
++------------+------------+------------+------------+------------+------------+
+| C          |         17 |      2,107 |        160 |        800 |      3,067 |
+| JSON       |          8 |      1,614 |          0 |          7 |      1,621 |
+| CMakeCache |          2 |        343 |          0 |         73 |        416 |
+| HTML       |          1 |        220 |          4 |         47 |        271 |
+| XML        |          7 |        216 |          0 |          5 |        221 |
+| Log        |          2 |        203 |          0 |         65 |        268 |
+| C++        |          1 |        134 |         11 |         46 |        191 |
+| CMake      |          5 |        111 |          7 |         36 |        154 |
+| Markdown   |          1 |         15 |          0 |          6 |         21 |
+| Makefile   |          1 |          4 |          0 |          2 |          6 |
++------------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                     | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                        |         45 |      4,967 |        182 |      1,087 |      6,236 |
+| .idea                                                                                                                                    |          4 |         20 |          0 |          0 |         20 |
+| 0zh_gyaki                                                                                                                                |         10 |        885 |         64 |        395 |      1,344 |
+| 0zh_hf                                                                                                                                   |          1 |        104 |          7 |         70 |        181 |
+| Gyak02                                                                                                                                   |          1 |         94 |          3 |         24 |        121 |
+| Lab01                                                                                                                                    |          1 |         74 |          5 |         42 |        121 |
+| brainfck                                                                                                                                 |          1 |        103 |          3 |         14 |        120 |
+| build                                                                                                                                    |          2 |         53 |          0 |          8 |         61 |
+| build\.cmake                                                                                                                             |          1 |          1 |          0 |          0 |          1 |
+| build\.cmake\api                                                                                                                         |          1 |          1 |          0 |          0 |          1 |
+| build\.cmake\api\v1                                                                                                                      |          1 |          1 |          0 |          0 |          1 |
+| build\.cmake\api\v1\query                                                                                                                |          1 |          1 |          0 |          0 |          1 |
+| build\.cmake\api\v1\query\client-vscode                                                                                                  |          1 |          1 |          0 |          0 |          1 |
+| cmake-build-debug                                                                                                                        |         16 |      2,899 |         68 |        307 |      3,274 |
+| cmake-build-debug\.cmake                                                                                                                 |          7 |      1,613 |          0 |          7 |      1,620 |
+| cmake-build-debug\.cmake\api                                                                                                             |          7 |      1,613 |          0 |          7 |      1,620 |
+| cmake-build-debug\.cmake\api\v1                                                                                                          |          7 |      1,613 |          0 |          7 |      1,620 |
+| cmake-build-debug\.cmake\api\v1\reply                                                                                                    |          7 |      1,613 |          0 |          7 |      1,620 |
+| cmake-build-debug\CMakeFiles                                                                                                             |          5 |        903 |         62 |        224 |      1,189 |
+| cmake-build-debug\CMakeFiles\3.23.2                                                                                                      |          4 |        703 |         62 |        160 |        925 |
+| cmake-build-debug\CMakeFiles\3.23.2\CompilerIdC                                                                                          |          1 |        633 |         61 |        135 |        829 |
+| cmake-build-debug\Testing                                                                                                                |          1 |          3 |          0 |          1 |          4 |
+| cmake-build-debug\Testing\Temporary                                                                                                      |          1 |          3 |          0 |          1 |          4 |
+| konzi                                                                                                                                    |          1 |         23 |          1 |          8 |         32 |
+| rsa                                                                                                                                      |          3 |        337 |         24 |        139 |        500 |
+| szorgalmi_ora                                                                                                                            |          3 |        355 |          7 |         71 |        433 |
++------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| filename                                                                                                                                 | language   | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\.idea\ProgramozasAlapjai.iml                                                                    | XML        |          2 |          0 |          0 |          2 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\.idea\misc.xml                                                                                  | XML        |          4 |          0 |          0 |          4 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\.idea\modules.xml                                                                               | XML        |          8 |          0 |          0 |          8 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\.idea\vcs.xml                                                                                   | XML        |          6 |          0 |          0 |          6 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\BuiltInSearchAndSort.c                                                                | C          |         29 |         27 |         15 |         71 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\CustomTime.c                                                                          | C          |         58 |          3 |         29 |         90 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\Konyvtar.c                                                                            | C          |        158 |         15 |         75 |        248 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\Palindrom.c                                                                           | C          |         36 |          4 |         19 |         59 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\Primek.c                                                                              | C          |         40 |          0 |         19 |         59 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\bkk.c                                                                                 | C          |        128 |          2 |         82 |        212 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\digit_ora.c                                                                           | C          |        112 |          7 |         51 |        170 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\leghosszabb.c                                                                         | C          |         30 |          0 |         15 |         45 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\mintanzh.html                                                                         | HTML       |        220 |          4 |         47 |        271 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_gyaki\trees.c                                                                               | C          |         74 |          2 |         43 |        119 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\0zh_hf\main.c                                                                                   | C          |        104 |          7 |         70 |        181 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\CMakeLists.txt                                                                                  | CMake      |          5 |          0 |          3 |          8 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\Gyak02\main.c                                                                                   | C          |         94 |          3 |         24 |        121 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\Lab01\main.c                                                                                    | C          |         74 |          5 |         42 |        121 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\README.md                                                                                       | Markdown   |         15 |          0 |          6 |         21 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\brainfck\main.c                                                                                 | C          |        103 |          3 |         14 |        120 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\build\.cmake\api\v1\query\client-vscode\query.json                                              | JSON       |          1 |          0 |          0 |          1 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\build\CMakeCache.txt                                                                            | CMakeCache |         52 |          0 |          8 |         60 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\.cmake\api\v1\reply\cache-v2-671a44a9a071025fdede.json                        | JSON       |      1,131 |          0 |          1 |      1,132 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\.cmake\api\v1\reply\cmakeFiles-v1-1a2480f9be0473fe117d.json                   | JSON       |        116 |          0 |          1 |        117 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\.cmake\api\v1\reply\codemodel-v2-e4be59f696bee8d0f17f.json                    | JSON       |         60 |          0 |          1 |         61 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\.cmake\api\v1\reply\directory-.-Debug-d0094a50bb2071803777.json               | JSON       |         14 |          0 |          1 |         15 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\.cmake\api\v1\reply\index-2022-10-10T20-45-11-0543.json                       | JSON       |        108 |          0 |          1 |        109 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\.cmake\api\v1\reply\target-ProgramozasAlapjai-Debug-1cd16e041ae5dfce33c1.json | JSON       |        109 |          0 |          1 |        110 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\.cmake\api\v1\reply\toolchains-v1-bc878d209107ad2a44e4.json                   | JSON       |         75 |          0 |          1 |         76 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\CMakeCache.txt                                                                | CMakeCache |        291 |          0 |         65 |        356 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\CMakeFiles\3.23.2\CMakeCCompiler.cmake                                        | CMake      |         54 |          1 |         18 |         73 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\CMakeFiles\3.23.2\CMakeRCCompiler.cmake                                       | CMake      |          6 |          0 |          1 |          7 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\CMakeFiles\3.23.2\CMakeSystem.cmake                                           | CMake      |         10 |          0 |          6 |         16 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\CMakeFiles\3.23.2\CompilerIdC\CMakeCCompilerId.c                              | C          |        633 |         61 |        135 |        829 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\CMakeFiles\CMakeOutput.log                                                    | Log        |        200 |          0 |         64 |        264 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\Testing\Temporary\LastTest.log                                                | Log        |          3 |          0 |          1 |          4 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\cmake_install.cmake                                                           | CMake      |         36 |          6 |          8 |         50 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\cmake-build-debug\ora.svg                                                                       | XML        |         53 |          0 |          2 |         55 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\konzi\konzi.c                                                                                   | C          |         23 |          1 |          8 |         32 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\rsa\Makefile                                                                                    | Makefile   |          4 |          0 |          2 |          6 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\rsa\rsa.c                                                                                       | C          |        199 |         13 |         91 |        303 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\rsa\rsa.cpp                                                                                     | C++        |        134 |         11 |         46 |        191 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\szorgalmi_ora\background.svg                                                                    | XML        |         90 |          0 |          1 |         91 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\szorgalmi_ora\main.c                                                                            | C          |        212 |          7 |         68 |        287 |
+| e:\ProgramozasAlapjai\ProgramozasAlapjai\szorgalmi_ora\ora.svg                                                                           | XML        |         53 |          0 |          2 |         55 |
+| Total                                                                                                                                    |            |      4,967 |        182 |      1,087 |      6,236 |
++------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+

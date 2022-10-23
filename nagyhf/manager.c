@@ -4,10 +4,180 @@
 #include "stdint.h"
 #include "math.h"
 #include "sys/time.h"
+#include "string.h"
 
 #include "dataset.h"
 #include "model.h"
 #include "manager.h"
+
+ProgramSetup GetDefaultSetup () {
+
+    ProgramSetup setup;
+
+    strcpy(setup.dataFolderPath, "./data");
+    setup.saveModelAfter = false;
+    setup.loadModelBefore = false;
+    setup.saveContinuously = false;
+
+    setup.shouldTrain = false;
+    setup.shouldShowImages = false;
+    setup.shouldTestAccuracy = false;
+    setup.shouldTestXOR = false;
+
+    setup.onlyPrintWrongImages = false;
+
+    setup.numEpochs = DEFAULT_NUM_EPOCHS; // default
+    setup.learningRate = DEFAULT_LEARNING_RATE; // default
+
+    setup.layerLayout = NULL;
+    setup.layerLayoutHead = NULL;
+
+    return setup;
+}
+
+ProgramSetup ProcessArgs (int argc, char** argv) {
+
+    ProgramSetup setup = GetDefaultSetup();
+
+    ArgReadState state = GENERAL;
+
+    for (int i = 1; i < argc; i++) {
+        if (state == MODEL) {
+            if (strcmp(argv[i], "-layer") == 0) {
+                state = LAYER;
+                continue;
+            }
+            state = GENERAL;
+        }
+        if (state == GENERAL) {
+            if (strcmp(argv[i], "--version") == 0) {
+                printf("version: 1.0.0\n");
+                exit(0);
+            }
+            if (strcmp(argv[i], "--help") == 0) {
+                printf("Possible arguments:\n");
+                printf("\t--help\n");
+                printf("\t--version\n");
+                printf("\t--train\n");
+                printf("\t--test-accuracy\n");
+                printf("\t--show-images\n");
+                printf("\t--only-wrong-images\n");
+                printf("\t--save-continuously\n");
+                printf("\t-seed [SEED]\n");
+                printf("\t-save [PATH]\n");
+                printf("\t-load [PATH]\n");
+                printf("\t-data-folder [PATH]\n");
+                printf("\t-model [LAYERS?]\n");
+                printf("\t-layer [NUM_NEURONS] [ACTIVATION_FUNCTION]\n");
+                printf("\t-num-epochs [NUM_EPOCHS]\n");
+                printf("\t-learning-rate [LEARNING_RATE]\n");
+                exit(0);
+            }
+            if (strcmp(argv[i], "--train") == 0) {
+                setup.shouldTrain = true;
+                continue;
+            }
+            if (strcmp(argv[i], "--test-accuracy") == 0) {
+                setup.shouldTestAccuracy = true;
+                continue;
+            }
+            if (strcmp(argv[i], "--show-images") == 0) {
+                setup.shouldShowImages = true;
+                continue;
+            }
+            if (strcmp(argv[i], "--only-wrong-images") == 0) {
+                setup.onlyPrintWrongImages = true;
+                continue;
+            }
+            if (strcmp(argv[i], "--save-continuously") == 0) {
+                setup.saveContinuously = true;
+                continue;
+            }
+            if (strcmp(argv[i], "-seed") == 0) {
+                if (++i >= argc) { { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }  exit(-1); }
+                srand(atoi(argv[i]));
+                continue;
+            }
+            if (strcmp(argv[i], "-model") == 0) {
+                state = MODEL;
+                continue;
+            }
+            if (strcmp(argv[i], "-save") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                strcpy(setup.savePath, argv[i]);
+                setup.saveModelAfter = true;
+                continue;
+            }
+            if (strcmp(argv[i], "-data-folder") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                strcpy(setup.dataFolderPath, argv[i]);
+                printf("%s\n", setup.dataFolderPath);
+                continue;
+            }
+            if (strcmp(argv[i], "-load") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                strcpy(setup.loadPath, argv[i]);
+                setup.loadModelBefore = true;
+                continue;
+            }
+            if (strcmp(argv[i], "-learning-rate") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                int scalar, power;
+                int numRead = sscanf(argv[i], "%de-%d", &scalar, &power);
+                if (numRead != 2) {
+                    fprintf(stderr, "[ERROR] Invalid format! (format: xe-y, pl.: 3e-2)\n");
+                    continue;
+                }
+                setup.learningRate = scalar * pow(10, -power);
+                continue;
+            }
+            if (strcmp(argv[i], "-num-epochs") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                setup.numEpochs = atoi(argv[i]);
+                continue;
+            }
+            fprintf(stderr, "[ERROR] Invalid argument '%s'!\n", argv[i]);
+            exit(-1);
+        }
+        if (state == LAYER) {
+            int numNeurons;
+
+            if (sscanf(argv[i], "%d", &numNeurons) == 0) {
+                state = GENERAL;
+                i--; // we want to look at this again
+                continue;
+            }
+
+            if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+            ActivationFunction actfn;
+            if (strcmp(argv[i], "RELU") == 0 || strcmp(argv[i], "relu") == 0) {
+                actfn = RELU;
+            } else if (strcmp(argv[i], "SIGMOID") == 0 || strcmp(argv[i], "sigmoid") == 0) {
+                actfn = SIGMOID;
+            } else {
+                fprintf(stderr, "[ERROR] Invalid activation function '%s'!\n", argv[i]);
+                exit(-1);
+            } 
+            LayerLayout* addedLayerLayout = malloc(sizeof(LayerLayout));
+            addedLayerLayout->numNeurons = numNeurons;
+            addedLayerLayout->activationFunction = actfn;
+            addedLayerLayout->next = NULL;
+
+            if (setup.layerLayoutHead == NULL) {
+                setup.layerLayoutHead = addedLayerLayout;
+                setup.layerLayout = addedLayerLayout;
+            } else {
+                setup.layerLayoutHead->next = addedLayerLayout;
+                setup.layerLayoutHead = addedLayerLayout;
+            }
+
+            state = MODEL;
+            continue;
+        }
+    }
+
+    return setup;
+}
 
 void PrintImagesInfinitely (Dataset dataset) {
     for (int i = 0; i < dataset.numData; i++)  {

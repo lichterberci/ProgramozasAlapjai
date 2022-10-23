@@ -9,191 +9,14 @@
 #include "model.h"
 #include "manager.h"
 
-typedef enum {
-    GENERAL, MODEL, LAYER
-} ArgReadState;
-
-#define DEFAULT_NUM_NEURONS 200
-#define DEFAULT_ACTIVATION_FUNCTION RELU
-#define DEFAULT_NUM_EPOCHS 1
-#define DEFAULT_LEARNING_RATE 0.000001
 
 int main (int argc, char **argv) {
 
-    // general args:
-    // --version
-    // --help
-    // --train
-    // --test-accuracy
-    // --show-images
-    // -num-epochs [NUM_EPOCHS]
-    // -learning-rate [LEARNING_RATE] --> xe-y pl.: 2e-5
-
-    // model args:
-    // -seed [SEED]
-    // -load [PATH] 
-    // -model -layer 800 RELU -layer 400 SIGMOID
-    // -save [PATH]
-
     srand(0); // default seed
 
-    ArgReadState state = GENERAL;
+    ProgramSetup setup = ProcessArgs(argc, argv);
 
-    char savePath[1000];
-    char loadPath[1000];
-    char dataFolderPath[1000] = "./data";
-    bool saveModelAfter = false;
-    bool loadModelBefore = false;
-    bool saveContinuously = false;
-
-    bool shouldTrain = false;
-    bool shouldShowImages = false;
-    bool shouldTestAccuracy = false;
-    bool shouldTestXOR = false;
-
-    bool onlyPrintWrongImages = false;
-
-    int numEpochs = DEFAULT_NUM_EPOCHS; // default
-    double learningRate = DEFAULT_LEARNING_RATE; // default
-
-    LayerLayout * layerLayout = NULL;
-    LayerLayout * layerLayoutHead = NULL;
-
-    for (int i = 1; i < argc; i++) {
-        if (state == MODEL) {
-            if (strcmp(argv[i], "-layer") == 0) {
-                state = LAYER;
-                continue;
-            }
-            state = GENERAL;
-        }
-        if (state == GENERAL) {
-            if (strcmp(argv[i], "--version") == 0) {
-                printf("version: 1.0.0\n");
-                return 0;
-            }
-            if (strcmp(argv[i], "--help") == 0) {
-                printf("Possible arguments:\n");
-                printf("\t--help\n");
-                printf("\t--version\n");
-                printf("\t--train\n");
-                printf("\t--test-accuracy\n");
-                printf("\t--show-images\n");
-                printf("\t--only-wrong-images\n");
-                printf("\t--save-continuously\n");
-                printf("\t-seed [SEED]\n");
-                printf("\t-save [PATH]\n");
-                printf("\t-load [PATH]\n");
-                printf("\t-data-folder [PATH]\n");
-                printf("\t-model [LAYERS?]\n");
-                printf("\t-layer [NUM_NEURONS] [ACTIVATION_FUNCTION]\n");
-                printf("\t-num-epochs [NUM_EPOCHS]\n");
-                printf("\t-learning-rate [LEARNING_RATE]\n");
-                return 0;
-            }
-            if (strcmp(argv[i], "--train") == 0) {
-                shouldTrain = true;
-                continue;
-            }
-            if (strcmp(argv[i], "--test-accuracy") == 0) {
-                shouldTestAccuracy = true;
-                continue;
-            }
-            if (strcmp(argv[i], "--show-images") == 0) {
-                shouldShowImages = true;
-                continue;
-            }
-            if (strcmp(argv[i], "--only-wrong-images") == 0) {
-                onlyPrintWrongImages = true;
-                continue;
-            }
-            if (strcmp(argv[i], "--save-continuously") == 0) {
-                saveContinuously = true;
-                continue;
-            }
-            if (strcmp(argv[i], "-seed") == 0) {
-                if (++i >= argc) { { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }  exit(-1); }
-                srand(atoi(argv[i]));
-                continue;
-            }
-            if (strcmp(argv[i], "-model") == 0) {
-                state = MODEL;
-                continue;
-            }
-            if (strcmp(argv[i], "-save") == 0) {
-                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
-                strcpy(savePath, argv[i]);
-                saveModelAfter = true;
-                continue;
-            }
-            if (strcmp(argv[i], "-data-folder") == 0) {
-                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
-                strcpy(dataFolderPath, argv[i]);
-                continue;
-            }
-            if (strcmp(argv[i], "-load") == 0) {
-                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
-                strcpy(loadPath, argv[i]);
-                loadModelBefore = true;
-                continue;
-            }
-            if (strcmp(argv[i], "-learning-rate") == 0) {
-                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
-                int scalar, power;
-                int numRead = sscanf(argv[i], "%de-%d", &scalar, &power);
-                if (numRead != 2) {
-                    fprintf(stderr, "[ERROR] Invalid format! (format: xe-y, pl.: 3e-2)\n");
-                    continue;
-                }
-                learningRate = scalar * pow(10, -power);
-                continue;
-            }
-            if (strcmp(argv[i], "-num-epochs") == 0) {
-                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
-                numEpochs = atoi(argv[i]);
-                continue;
-            }
-            fprintf(stderr, "[ERROR] Invalid argument '%s'!\n", argv[i]);
-            exit(-1);
-        }
-        if (state == LAYER) {
-            int numNeurons;
-
-            if (sscanf(argv[i], "%d", &numNeurons) == 0) {
-                state = GENERAL;
-                i--; // we want to look at this again
-                continue;
-            }
-
-            if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
-            ActivationFunction actfn;
-            if (strcmp(argv[i], "RELU") == 0 || strcmp(argv[i], "relu") == 0) {
-                actfn = RELU;
-            } else if (strcmp(argv[i], "SIGMOID") == 0 || strcmp(argv[i], "sigmoid") == 0) {
-                actfn = SIGMOID;
-            } else {
-                fprintf(stderr, "[ERROR] Invalid activation function '%s'!\n", argv[i]);
-                exit(-1);
-            } 
-            LayerLayout* addedLayerLayout = malloc(sizeof(LayerLayout));
-            addedLayerLayout->numNeurons = numNeurons;
-            addedLayerLayout->activationFunction = actfn;
-            addedLayerLayout->next = NULL;
-
-            if (layerLayoutHead == NULL) {
-                layerLayoutHead = addedLayerLayout;
-                layerLayout = addedLayerLayout;
-            } else {
-                layerLayoutHead->next = addedLayerLayout;
-                layerLayoutHead = addedLayerLayout;
-            }
-
-            state = MODEL;
-            continue;
-        }
-    }
-
-    if (shouldTrain == false && shouldTestAccuracy == false && shouldShowImages == false) {
+    if (setup.shouldTrain == false && setup.shouldTestAccuracy == false && setup.shouldShowImages == false) {
         printf("[WARNING] No action selected!\n");
         return 0;
     }
@@ -202,28 +25,28 @@ int main (int argc, char **argv) {
         0, NULL
     };
 
-    if (loadModelBefore) {
-        model = LoadModelFromFile(loadPath);
+    if (setup.loadModelBefore) {
+        model = LoadModelFromFile(setup.loadPath);
     }
 
-    if (layerLayout != NULL) {
+    if (setup.layerLayout != NULL) {
 
         // loading has the higher priority
-        if (loadModelBefore == false) {
-            model = CreateModelFromLayout(layerLayout);
+        if (setup.loadModelBefore == false) {
+            model = CreateModelFromLayout(setup.layerLayout);
             InitModelToRandom(&model, 1.0);
         } else {
             printf("[WARNING] Model layout ignored because the model was loaded!\n");
         }
 
-        layerLayoutHead = layerLayout;
+        setup.layerLayoutHead = setup.layerLayout;
         // free layout list
-        while (layerLayoutHead != NULL) {
-            LayerLayout* tmp = layerLayoutHead->next;
-            free(layerLayoutHead);
-            layerLayoutHead = tmp;
+        while (setup.layerLayoutHead != NULL) {
+            LayerLayout* tmp = setup.layerLayoutHead->next;
+            free(setup.layerLayoutHead);
+            setup.layerLayoutHead = tmp;
         }
-        free(layerLayout);
+        free(setup.layerLayout);
     }
 
     if (model.numLayers == 0) {
@@ -240,13 +63,13 @@ int main (int argc, char **argv) {
     // const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
 
     char trainImagePath[1000];
-    sprintf(trainImagePath, "%s/train-images.idx3-ubyte", dataFolderPath);
+    sprintf(trainImagePath, "%s/train-images.idx3-ubyte", setup.dataFolderPath);
     char trainLabelPath[1000];
-    sprintf(trainLabelPath, "%s/train-labels.idx1-ubyte", dataFolderPath);
+    sprintf(trainLabelPath, "%s/train-labels.idx1-ubyte", setup.dataFolderPath);
     char testImagePath[1000];
-    sprintf(testImagePath, "%s/t10k-images.idx3-ubyte", dataFolderPath);
+    sprintf(testImagePath, "%s/t10k-images.idx3-ubyte", setup.dataFolderPath);
     char testLabelPath[1000];
-    sprintf(testLabelPath, "%s/t10k-labels.idx1-ubyte", dataFolderPath);
+    sprintf(testLabelPath, "%s/t10k-labels.idx1-ubyte", setup.dataFolderPath);
 
     Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
     Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
@@ -261,10 +84,10 @@ int main (int argc, char **argv) {
     // const int numEpochs = 1;
     // const double learningRate = 1 * pow(10, -7); // should be lower if the model is trained for many epochs
 
-    if (shouldTrain)
-        FitModel(model, trainSet, testSet, numEpochs, learningRate, saveContinuously, savePath);
+    if (setup.shouldTrain)
+        FitModel(model, trainSet, testSet, setup.numEpochs, setup.learningRate, setup.saveContinuously, setup.savePath);
     
-    if (shouldTestAccuracy) {
+    if (setup.shouldTestAccuracy) {
         double trainAccuracy = GetAccuracy(model, trainSet);
         printf("[LOG] Accuracy on the training set: %2.1lf%%\n", trainAccuracy * 100);
         
@@ -272,11 +95,11 @@ int main (int argc, char **argv) {
         printf("[LOG] Accuracy on the test set: %2.1lf%%\n", testAccuracy * 100);
     }
 
-    if (saveModelAfter) 
-        SaveModelToFile(model, savePath);
+    if (setup.saveModelAfter) 
+        SaveModelToFile(model, setup.savePath);
 
-    if (shouldShowImages)
-        PrintImagesWithPredictions(model, testSet, onlyPrintWrongImages);
+    if (setup.shouldShowImages)
+        PrintImagesWithPredictions(model, testSet, setup.onlyPrintWrongImages);
 
     FreeModel(model);
     FreeDataset(trainSet);
