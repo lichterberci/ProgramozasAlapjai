@@ -226,8 +226,10 @@ void FitModel (
             
                 avgCost = 0.0;
 
-                if (saveContinuously)
+                if (saveContinuously) {
                     SaveModelToFile(model, savePath);
+                    printf("\033[A\33[2K\r");
+                }
             }
 
             double cost;
