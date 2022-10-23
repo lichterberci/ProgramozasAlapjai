@@ -16,6 +16,8 @@ void FitModel (
     Dataset trainSet, 
     Dataset testSet, 
     uint8_t numEpochs, 
-    double learningRate
+    double learningRate,
+    bool saveContinuously,
+    const char* savePath
 );
 void PrintImagesWithPredictions (Model model, Dataset dataset);

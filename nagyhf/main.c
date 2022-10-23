@@ -39,10 +39,12 @@ int main (int argc, char **argv) {
 
     ArgReadState state = GENERAL;
 
-    char savePath[100];
-    char loadPath[100];
+    char savePath[1000];
+    char loadPath[1000];
+    char dataFolderPath[1000] = "./data";
     bool saveModelAfter = false;
     bool loadModelBefore = false;
+    bool saveContinuously = false;
 
     bool shouldTrain = false;
     bool shouldShowImages = false;
@@ -75,9 +77,11 @@ int main (int argc, char **argv) {
                 printf("\t--train\n");
                 printf("\t--test-accuracy\n");
                 printf("\t--show-images\n");
+                printf("\t--save-continuously\n");
                 printf("\t-seed [SEED]\n");
                 printf("\t-save [PATH]\n");
                 printf("\t-load [PATH]\n");
+                printf("\t-data-folder [PATH]\n");
                 printf("\t-model [LAYERS?]\n");
                 printf("\t-layer [NUM_NEURONS] [ACTIVATION_FUNCTION]\n");
                 printf("\t-num-epochs [NUM_EPOCHS]\n");
@@ -96,6 +100,10 @@ int main (int argc, char **argv) {
                 shouldShowImages = true;
                 continue;
             }
+            if (strcmp(argv[i], "--save-continuously") == 0) {
+                saveContinuously = true;
+                continue;
+            }
             if (strcmp(argv[i], "-seed") == 0) {
                 if (++i >= argc) { { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }  exit(-1); }
                 srand(atoi(argv[i]));
@@ -109,6 +117,11 @@ int main (int argc, char **argv) {
                 if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
                 strcpy(savePath, argv[i]);
                 saveModelAfter = true;
+                continue;
+            }
+            if (strcmp(argv[i], "-data-folder") == 0) {
+                if (++i >= argc) { fprintf(stderr, "[ERROR] Invalid number of arguments!\n");  exit(-1); }
+                strcpy(dataFolderPath, argv[i]);
                 continue;
             }
             if (strcmp(argv[i], "-load") == 0) {
@@ -214,10 +227,19 @@ int main (int argc, char **argv) {
 
     PrintModelLayout(model);
 
-    const char* trainImagePath = "./data/train-images.idx3-ubyte";
-    const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
-    const char* testImagePath = "./data/t10k-images.idx3-ubyte";
-    const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
+    // const char* trainImagePath = "./data/train-images.idx3-ubyte";
+    // const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
+    // const char* testImagePath = "./data/t10k-images.idx3-ubyte";
+    // const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
+
+    char trainImagePath[1000];
+    sprintf(trainImagePath, "%s/train-images.idx3-ubyte", dataFolderPath);
+    char trainLabelPath[1000];
+    sprintf(trainLabelPath, "%s/train-labels.idx1-ubyte", dataFolderPath);
+    char testImagePath[1000];
+    sprintf(testImagePath, "%s/t10k-images.idx3-ubyte", dataFolderPath);
+    char testLabelPath[1000];
+    sprintf(testLabelPath, "%s/t10k-labels.idx1-ubyte", dataFolderPath);
 
     Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
     Dataset testSet = ReadDatasetFromFile(testImagePath, testLabelPath);
@@ -225,7 +247,7 @@ int main (int argc, char **argv) {
     if (trainSet.numData == 0 || testSet.numData == 0)
         exit(-1);
 
-    //                        V--- Number of hidden layers, don't forget to update!!!
+    ////                        V--- Number of hidden layers, don't forget to update!!!
     //Model model = CreateModel(2, 1, RELU, 1, RELU, SOFTMAX);
     //InitModelToRandom(&model, 1.0);
     
@@ -233,7 +255,7 @@ int main (int argc, char **argv) {
     // const double learningRate = 1 * pow(10, -7); // should be lower if the model is trained for many epochs
 
     if (shouldTrain)
-        FitModel(model, trainSet, testSet, numEpochs, learningRate);
+        FitModel(model, trainSet, testSet, numEpochs, learningRate, saveContinuously, savePath);
     
     if (shouldTestAccuracy) {
         double trainAccuracy = GetAccuracy(model, trainSet);
@@ -248,6 +270,10 @@ int main (int argc, char **argv) {
 
     if (shouldShowImages)
         PrintImagesWithPredictions(model, testSet);
+
+    FreeModel(model);
+    FreeDataset(trainSet);
+    FreeDataset(testSet);
 
     printf("Code exited safely!");
     return 0;

@@ -180,7 +180,9 @@ void FitModel (
     Dataset trainSet, 
     Dataset testSet, 
     uint8_t numEpochs, 
-    double learningRate
+    double learningRate,
+    bool saveContinuously,
+    const char* savePath
 ) {
 
     struct timeval prevThousandStart;
@@ -223,6 +225,9 @@ void FitModel (
                 printf("[LOG] Fitting... epoch: %d/%d image: %5d/%5d (ETA: %s) [avg. cost: %e]\n", epoch + 1, numEpochs, imageIndex, trainSet.numData, etaString, avgCost);
             
                 avgCost = 0.0;
+
+                if (saveContinuously)
+                    SaveModelToFile(model, savePath);
             }
 
             double cost;

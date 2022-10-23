@@ -49,13 +49,16 @@ void FreeModel(Model model) {
     for (int i = 0; i < model.numLayers; i++)
         FreeLayer(model.layers[i]);
 
-    free(model.layers);
+    if (model.layers != NULL)
+        free(model.layers);
 }
 
 void FreeLayer(Layer layer) {
 
-    free(layer.weights);
-    free(layer.biases);
+    if (layer.weights != NULL)
+        free(layer.weights);
+    if (layer.biases != NULL)
+        free(layer.biases);
 }
 
 void PrintModel(Model model) {

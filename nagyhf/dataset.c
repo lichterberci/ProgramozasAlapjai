@@ -28,11 +28,9 @@ uint8_t ReadByte (FILE* fp) {
 }
 
 void FreeDataset (Dataset dataset) {
-    for (size_t i = 0; i < dataset.numData; i++) {
-        free(dataset.images[i].data);
-    }
 
-    free(dataset.images);        
+    if (dataset.images != NULL)
+        free(dataset.images);        
 }
 
 double GetPixelOfImage(LabeledImage image, int x, int y) {
