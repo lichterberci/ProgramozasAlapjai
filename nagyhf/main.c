@@ -51,6 +51,8 @@ int main (int argc, char **argv) {
     bool shouldTestAccuracy = false;
     bool shouldTestXOR = false;
 
+    bool onlyPrintWrongImages = false;
+
     int numEpochs = DEFAULT_NUM_EPOCHS; // default
     double learningRate = DEFAULT_LEARNING_RATE; // default
 
@@ -77,6 +79,7 @@ int main (int argc, char **argv) {
                 printf("\t--train\n");
                 printf("\t--test-accuracy\n");
                 printf("\t--show-images\n");
+                printf("\t--show-only-wrong-images\n");
                 printf("\t--save-continuously\n");
                 printf("\t-seed [SEED]\n");
                 printf("\t-save [PATH]\n");
@@ -98,6 +101,10 @@ int main (int argc, char **argv) {
             }
             if (strcmp(argv[i], "--show-images") == 0) {
                 shouldShowImages = true;
+                continue;
+            }
+            if (strcmp(argv[i], "--only-wrong-images") == 0) {
+                onlyPrintWrongImages = true;
                 continue;
             }
             if (strcmp(argv[i], "--save-continuously") == 0) {
@@ -269,7 +276,7 @@ int main (int argc, char **argv) {
         SaveModelToFile(model, savePath);
 
     if (shouldShowImages)
-        PrintImagesWithPredictions(model, testSet);
+        PrintImagesWithPredictions(model, testSet, onlyPrintWrongImages);
 
     FreeModel(model);
     FreeDataset(trainSet);

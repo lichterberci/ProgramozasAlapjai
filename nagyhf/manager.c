@@ -102,7 +102,6 @@ void TestXORProblem (
         fabs(result1.probs[0] - 1) <= maxDeviationFromResult
         && fabs(result1.probs[1] - 0) <= maxDeviationFromResult
     ) {
-        /* This prints a ✓. */
         printf("Test 1: PASSED\n");   
     } else {
         printf("Test 1: NOT PASSED\n");
@@ -113,7 +112,6 @@ void TestXORProblem (
         fabs(result2.probs[0] - 0) <= maxDeviationFromResult
         && fabs(result2.probs[1] - 1) <= maxDeviationFromResult
     ) {
-        /* This prints a ✓. */
         printf("Test 2: PASSED\n");   
     } else {
         printf("Test 2: NOT PASSED\n");
@@ -124,7 +122,6 @@ void TestXORProblem (
         fabs(result3.probs[0] - 0) <= maxDeviationFromResult
         && fabs(result3.probs[1] - 1) <= maxDeviationFromResult
     ) {
-        /* This prints a ✓. */
         printf("Test 3: PASSED\n");   
     } else {
         printf("Test 3: NOT PASSED\n");
@@ -135,7 +132,6 @@ void TestXORProblem (
         fabs(result4.probs[0] - 1) <= maxDeviationFromResult
         && fabs(result4.probs[1] - 0) <= maxDeviationFromResult
     ) {
-        /* This prints a ✓. */
         printf("Test 4: PASSED\n");   
     } else {
         printf("Test 4: NOT PASSED\n");
@@ -259,17 +255,20 @@ void FitModel (
 
 }
 
-void PrintImagesWithPredictions (Model model, Dataset dataset) {
+void PrintImagesWithPredictions (Model model, Dataset dataset, bool onlyWrongs) {
 
     for (int i = 0; i < dataset.numData; i++)
     {
         LabeledImage image = dataset.images[i];
-        PrintLabeledImage(image);
-
         Result result = Predict(model, image.data, NULL);
-        PrintResult(result);
+        uint8_t guess = GetPredictionFromResult(result);
 
-        printf("The accuracy fn says: %d\n", GetPredictionFromResult(result));
+        if (guess == image.label)
+            continue;
+
+        PrintLabeledImage(image);
+        PrintResult(result);
+        printf("Guess: %d\n", guess);
         
         printf("Type in Q to quit, anything else to continue...\n");
         char c = fgetc(stdin);

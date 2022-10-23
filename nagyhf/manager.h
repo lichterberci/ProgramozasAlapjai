@@ -20,4 +20,4 @@ void FitModel (
     bool saveContinuously,
     const char* savePath
 );
-void PrintImagesWithPredictions (Model model, Dataset dataset);
+void PrintImagesWithPredictions (Model model, Dataset dataset, bool onlyWrongs);
