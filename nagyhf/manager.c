@@ -433,7 +433,7 @@ void PrintImagesWithPredictions (Model model, Dataset dataset, bool onlyWrongs) 
         Result result = Predict(model, image.data, NULL);
         uint8_t guess = GetPredictionFromResult(result);
 
-        if (guess == image.label)
+        if (onlyWrong && guess == image.label)
             continue;
 
         PrintLabeledImage(image);
