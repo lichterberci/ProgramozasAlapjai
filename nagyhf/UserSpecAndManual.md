@@ -2,7 +2,11 @@
 
 ## Summary
 
-A program that solves the MNIST problem, so it can classify 28x28 pixel greyscale images depending on the digit on the image; so possible classes are 0-9.
+This is a program that solves the MNIST problem, which means it can classify 28x28 pixel greyscale images into 10 classes, based on the digits present on the images. In other words, it can recognize eg. the number 7 on an image, which is 28x28 pixel and greyscale
+
+## The dataset
+
+The MNIST dataset is an open-source dataset, consisting of 60000 training images and 10000 images for testing.
 
 ## Solution
 
@@ -21,14 +25,15 @@ The file names should be:
 - t10k-images.idx3-ubyte
 - t10k-labels.idx1-ubyte
 
-### Training a model from scratch
+### Training a model
 
-The user can train the model by running the program with the ```--train``` flag. The models architecture can be specified by the ```-model``` flag, followed by ```-layer``` flags, and every layer flag should be followed by the number of neurons in each layer and the activation function of the layer. Eg.: ```-model -layer 800 RELU -layer 400 SIGMOID``` will create a model, with 2 hidden-layers: one with 800 neurons and ReLU as the activation function, one with 400 neurons and the sigmoid function as its activation function.
+The user can train the model by running the program with the ```--train``` flag.  
+If we want to define a new model, its architecture can be specified by the ```-model``` option, followed by one or more ```-layer``` arguments, and every layer flag should be followed by the number of neurons in the given layer and its activation function. Eg.: ```-model -layer 800 RELU -layer 400 SIGMOID``` will create a model, with 2 hidden-layers: one with 800 neurons and ReLU as the activation function, one with 400 neurons and the sigmoid function as its activation function.
 Other hyperparameters can also be specified using cmd arguments:
 - ```-num-epochs``` defines for how many epochs should the model be trained. Eg.: ```-num-epochs 3```
 - ```-learning-rate``` defines the learning rate of the model. It should be in the form of xe-y where x and y are (positive) integers. Eg.: ```-learning-rate 2e-5```
 
-### Training existing model
+### Loading a previously saved model
 
 A model can be loaded using the ```-load``` parameter, followed by the path of the .model file. If a ```-load``` parameter is present, manually set model layout will be ignored!
 
@@ -43,3 +48,7 @@ We can do that by the ```--test-accuracy``` flag.
 ### Show the result with images side-by-side
 
 By setting the ```--show-images``` flag, the program will print the images of the test dataset with the given model's predictions beneath it. With the ```--only-bad-images``` flag, it will only show images, where the model is wrong.
+
+### Reproducability
+
+The seed can be set with the ```-seed``` option with the seed after it as an integer. The default seed is 0, so even if we there is not seed argument present, the results can be reproduced.
