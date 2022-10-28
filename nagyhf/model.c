@@ -801,7 +801,7 @@ void SaveModelToFile (Model model, const char* filePath) {
 
 Model LoadModelFromFile (const char* filePath) {
 
-    Model model;
+    Model model = {0, NULL};
 
     FILE* fp = fopen(filePath, "rb");
 

@@ -27,6 +27,8 @@ int main (int argc, char **argv) {
 
     if (setup.loadModelBefore) {
         model = LoadModelFromFile(setup.loadPath);
+        if (model.numLayers == 0) // invalid loading
+            exit(-1);
     }
 
     if (setup.layerLayout != NULL) {
