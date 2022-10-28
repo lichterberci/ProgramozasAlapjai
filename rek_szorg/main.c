@@ -2,16 +2,16 @@
 #include "stdlib.h"
 
 char* alloc_char (int depth) {
-    char c = getchar();
+    int c = getchar();
 
-    if (c == EOF || c == '\n') {
+    if (c == EOF || c == (int)'\n') {
         char* str = malloc(depth + 1);
         str[depth] = 0;
         return str;
     }
 
     char* str = alloc_char(depth + 1);
-    str[depth] = c;
+    str[depth] = (char)c;
     return str;
 }
 
