@@ -4,7 +4,7 @@
 
 ## Summary
 
-This is a program that solves the MNIST problem, which means it can classify 28x28 pixel greyscale images into 10 classes, based on the digits present on the images. In other words, it can recognize eg. the number 7 on an image, which is 28x28 pixel and greyscale.
+This is a program that solves the MNIST problem, which means it can classify 28x28 pixel greyscale images into 10 classes, based on the digits present on the images. In other words, it can recognize eg. the number 7 on an image, which is 28x28 and greyscale.
 
 ## The dataset
 
@@ -17,7 +17,7 @@ The program uses a (fully-connected) deep neural network. The model's architectu
 
 ## How to use it
 
-The program's behaviour can be specified using cmd parameters. The following section will list all the possible parameters and how to use them.
+The program's behaviour can be specified using cmd parameters. The following section will list all the possible parameters and how to use them. The order of the arguments doesn't matter, as long as every non-flag argument (those that start with a simple '-' as opposed to '--') is followed by its value(s). So `--train --show-images` is the same as `--show-images --train`, but `--train -data-folder ./data/` is not the same as `-data-folder --train ./data/`.
 
 ### Specify folder of the data
 
@@ -34,6 +34,7 @@ These files can be downloaded from [this website](http://yann.lecun.com/exdb/mni
 The user can train the model by running the program with the `--train` flag.  
 If we want to define a new model, its architecture can be specified by the `-model` option, followed by one or more `-layer` arguments, and every layer flag should be followed by the number of neurons in the given layer and its activation function. Eg.: `-model -layer 800 RELU -layer 400 SIGMOID` will create a model, with 2 hidden-layers: one with 800 neurons and ReLU as the activation function, one with 400 neurons and the sigmoid function as its activation function.
 Other hyperparameters can also be specified using cmd arguments:
+
 - `-num-epochs` defines for how many epochs should the model be trained. Eg.: `-num-epochs 3`
 - `-learning-rate` defines the learning rate of the model. It should be in the form of xe-y where x and y are (positive) integers. Eg.: `-learning-rate 2e-5`
 
@@ -55,7 +56,7 @@ By setting the `--show-images` flag, the program will print the images of the te
 
 ### Reproducability
 
-The seed can be set with the `-seed` option with the seed after it as an integer. The default seed is 0, so even if we there is not seed argument present, the results can be reproduced.
+The seed can be set with the `-seed` option with the seed after it as an integer. The default seed is 0, so even if there is no seed argument present, the results can be reproduced.
 
 ### Examples
 
