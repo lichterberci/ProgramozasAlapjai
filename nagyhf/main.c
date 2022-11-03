@@ -59,11 +59,6 @@ int main (int argc, char **argv) {
 
     PrintModelLayout(model);
 
-    // const char* trainImagePath = "./data/train-images.idx3-ubyte";
-    // const char* trainLabelPath = "./data/train-labels.idx1-ubyte";
-    // const char* testImagePath = "./data/t10k-images.idx3-ubyte";
-    // const char* testLabelPath = "./data/t10k-labels.idx1-ubyte";
-
     char trainImagePath[1000];
     sprintf(trainImagePath, "%s/train-images.idx3-ubyte", setup.dataFolderPath);
     char trainLabelPath[1000];
@@ -82,9 +77,6 @@ int main (int argc, char **argv) {
     ////                        V--- Number of hidden layers, don't forget to update!!!
     //Model model = CreateModel(2, 1, RELU, 1, RELU, SOFTMAX);
     //InitModelToRandom(&model, 1.0);
-    
-    // const int numEpochs = 1;
-    // const double learningRate = 1 * pow(10, -7); // should be lower if the model is trained for many epochs
 
     if (setup.shouldTrain)
         FitModel(model, trainSet, testSet, setup.numEpochs, setup.learningRate, setup.saveContinuously, setup.savePath);

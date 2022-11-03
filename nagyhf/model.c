@@ -201,11 +201,6 @@ void InitModelToRandom (Model* model, double randomRange) {
     }
 }
 
-/// @brief Sets up the layers of a model from dimension and activation fn lists
-/// @param numHiddenLayers number of hidden layers
-/// @param ... size, activation fn, size2, activation fn2, activation fn3
-/// The number of additional parameters must be at least 1 (activation fn of last layer)
-/// @return model instance
 Model CreateModel(int numHiddenLayers, ...) {
 
     Model model;
@@ -299,11 +294,6 @@ Model CreateModelFromLayout(LayerLayout* layout) {
     return model;
 }
 
-/// @brief Forwards the given image through the given model, and optionally saves the SUMS of the neurons to a buffer (not the values after the activation function)
-/// @param model the model, with which we want to predict
-/// @param input input image's data
-/// @param out_neuronValues the SUMS!!! of the neurons, so sum(w*n + b)
-/// @return the prediction result
 Result Predict(Model model, double* input, double** out_neuronValues) {
 
     Result emptyResult;
@@ -399,19 +389,6 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
         // calculated layer, time to move on
 
         memcpy(&prevLayerValues, &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
-
-        // instead of memcpy and memset, we only need to swap pointers, and can ignore the memset
-        // double* tmp = currentLayerValues;
-        // currentLayerValues = prevLayerValues;
-        // prevLayerValues = tmp;
-
-        // if (out_neuronValues != NULL) {
-        //     if (out_neuronValues[currentLayerIndex] != NULL) {
-        //         memcpy(out_neuronValues[currentLayerIndex], &currentLayerValues, MAX_LAYER_DIM * sizeof(double));
-        //     } else {
-        //         printf("[WARNING] out_neuronValues is not null but out_neuronValues[%d] is!\n", currentLayerIndex);
-        //     }
-        // }
     }
 
     // result is in the bottom 10 indicies of prevLayerValues
@@ -476,10 +453,6 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
     return result;
 }
 
-/// @brief Allocates a buffer with dimensions defined by the model's layers. 
-/// @brief It does not create a buffer for the -1st vector (the image)
-/// @param model 
-/// @return pointer to the buffer
 double** MakeValueBufferForModel (int numLayers) {
 
     double** result = malloc(numLayers * sizeof(double*));
@@ -502,9 +475,6 @@ void FreeValueBuffer (Model model, double** buffer) {
     free(buffer);
 }
 
-/// @brief implements cross-entropy algorithm
-/// @brief cross-entropy: -sum(y[i] * log(s[i])) for i: 0..NUM_CLASSES
-/// @return Cross-entropy cost of the given image with the label
 double CalculateCost(uint8_t label, double* resultValues) {
 
     double cost = 0.0;
@@ -518,8 +488,6 @@ double CalculateCost(uint8_t label, double* resultValues) {
     return cost;
 }
 
-/// @brief Adjusts the model's weights
-/// @param neuronValues holds the values of the neurons, filled during the prediction phase
 void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate, double** preallocatedDerBuffer, double* out_cost) {
 
     if (VERBOSE_BACKPROP)
@@ -646,16 +614,7 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                 // we have already added the f^-1 part in the dC/dz part !!!
 
                 delta *= prevValue;
-
-                // if (model.layers[layerIndex].activationFunction == SIGMOID)
-                //     delta *= SigmoidDer(neuronValues[layerIndex][i]) * prevValue;
-                // else if (model.layers[layerIndex].activationFunction == RELU)
-                //     delta *= ReLUDer(neuronValues[layerIndex][i]) * prevValue;
-                // else if (model.layers[layerIndex].activationFunction == SOFTMAX)
-                //     delta *= 1 * prevValue; // we have already calculated it
-                // else
-                //     fprintf(stderr, "[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
-
+                
                 if (VERBOSE_BACKPROP)
                     printf("[VERBOSE] dC/dw=%e (l=%d,i=%d,j=%d)\n", delta, layerIndex, i, j);
 
@@ -668,18 +627,6 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
 
             double delta = derBuffer[layerIndex][i];
 
-            // we have already added the f^-1 part in the dC/dz part !!!
-
-
-            // if (model.layers[layerIndex].activationFunction == SIGMOID)
-            //     delta *= SigmoidDer(neuronValues[layerIndex][i]);
-            // else if (model.layers[layerIndex].activationFunction == RELU)
-            //     delta *= ReLUDer(neuronValues[layerIndex][i]);
-            // else if (model.layers[layerIndex].activationFunction == SOFTMAX)
-            //     delta *= 1; // we have already calculated it
-            // else
-            //     printf("[ERROR] Unknown activation function %d\n", model.layers[layerIndex].activationFunction);
-            
             if (VERBOSE_BACKPROP)
                 printf("[VERBOSE] dC/db=%e (l=%d,i=%d)\n", delta, layerIndex, i);
 
@@ -694,11 +641,6 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
         printf("--------------------------------------------------\n");
 }
 
-/// @brief Runs predict and then backpropagation on the model with the given image and target
-/// @param model it is ok if it's not a pointer, because the layers variable will still point to the same memory address
-/// @param image 
-/// @param learningRate 
-/// @returns wether the result is ok or inf/-inf/nan --> true = good, false = stop learning
 bool FitModelForImage (Model model, LabeledImage* image, double learningRate, double** preallocatedValueBuffer, double** preallocatedDerBuffer, double* out_cost) {
 
     double** valueBuffer;
@@ -728,7 +670,6 @@ double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImage
     return avgCost;
 }
 
-/// @brief argmax
 int GetPredictionFromResult(Result result) {
 
     int maxIndex = 0;
