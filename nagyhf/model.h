@@ -93,8 +93,15 @@ Result Predict(Model model, double* input, double** out_neuronValues);
 /// @return Cross-entropy cost of the given image with the label
 double CalculateCost(uint8_t label, double* resultValues);
 /// @brief Adjusts the model's weights
-/// @param neuronValues holds the values of the neurons, filled during the prediction phasevoid BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate, double** preallocatedDerBuffer, double* out_cost);
-void BackPropagate(Model model, double** neuronValues, LabeledImage* image, double learningRate, double** preallocatedDerBuffer, double* out_cost);
+/// @param neuronValues holds the values of the neurons, filled during the prediction phase
+void BackPropagate(
+    Model model, 
+    double** neuronValues, 
+    LabeledImage* image, 
+    double learningRate, 
+    double** preallocatedDerBuffer, 
+    double* out_cost
+);
 /// @brief Runs predict and then backpropagation on the model with the given image and target
 /// @param model it is ok if it's not a pointer, because the layers variable will still point to the same memory address
 /// @param image 
