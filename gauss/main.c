@@ -30,6 +30,20 @@ void FreeVector (Vector vector) {
     free (vector.values);
 }
 
+Matrix CopyMatrix (Matrix matrix) {
+    Matrix result = matrix;
+    result.values = malloc(result.numRows * result.numCols * sizeof(double));
+    memcpy(result.values, matrix.values, result.numRows * result.numCols * sizeof(double));
+    return result;
+}
+
+Vector CopyVector (Vector vector) {
+    Vector result = vector;
+    result.values = malloc(result.dimension * sizeof(double));
+    memcpy(result.values, vector.values, result.dimension * sizeof(double));
+    return result;
+}
+
 Matrix ZeroMatrix (int numRows, int numCols) {
 
     Matrix result;
@@ -226,7 +240,10 @@ int GetLastNonZeroRow (Matrix matrix) {
     return -1;
 }
 
-Vector* GaussEliminate (Matrix matrix, Vector vector) {
+Vector* GaussEliminate (Matrix A, Vector b) {
+
+    Matrix matrix = CopyMatrix(A);
+    Vector vector = CopyVector(b);
 
     int row = 0;
     int col = 0;
@@ -242,7 +259,9 @@ Vector* GaussEliminate (Matrix matrix, Vector vector) {
                 if (GetVectorValueAtPos(vector, row) != 0) {
                     // 0x+0y+0z != 0
                     // --> there is no solution
-                    return NO_RESULT;
+                    FreeMatrix(matrix);
+                    FreeVector(vector);
+                    return (Vector*)NO_RESULT;
                 }
 
                 int rowToSwap = GetLastNonZeroRow (matrix);
@@ -251,11 +270,15 @@ Vector* GaussEliminate (Matrix matrix, Vector vector) {
                     // matrix is null matrix
                     if (IsVectorZero(vector) == false) {
                         // 0x!=0
-                        return NO_RESULT;
+                        FreeMatrix(matrix);
+                        FreeVector(vector);
+                        return (Vector*)NO_RESULT;
                     }
 
+                    FreeMatrix(matrix);
+                    FreeVector(vector);
                     // 0x=0
-                    return INFINITE_RESULTS;
+                    return (Vector*)INFINITE_RESULTS;
                 }
             }
 
@@ -274,16 +297,16 @@ Vector* GaussEliminate (Matrix matrix, Vector vector) {
 
         // we have a valid leading-term
 
-        if (leadingTerm != 1) {
+        if (leadingTerm != 1.0) {
             // adjust this row
 
-            MultiplyRowByLambda(matrix, row, 1 / leadingTerm);
-            MultiplyVectorValueByLambda(vector, row, 1 / leadingTerm);
+            MultiplyRowByLambda(matrix, row, 1.0 / leadingTerm);
+            MultiplyVectorValueByLambda(vector, row, 1.0 / leadingTerm);
         }
 
         // we have a leading 1
 
-        for (size_t adjustedRow = 0; adjustedRow < matrix.numRows; adjustedRow++) {
+        for (size_t adjustedRow = row + 1; adjustedRow < matrix.numRows; adjustedRow++) {
             
             // subtract the current row from the others (and multiply accordingly)
 
@@ -301,10 +324,45 @@ Vector* GaussEliminate (Matrix matrix, Vector vector) {
 
     // we have an upper-triangle
 
-    PrintMatrix (matrix);
-    PrintVector (vector);
+    /*
+    
+    eg:
 
-    return NULL;
+    [[1, 2],
+     [0, 1]]
+    
+    */
+
+
+    // in the previous loop, we added +1, +1, but we want to revert these
+    col--;
+    row--;
+
+    // work towards reduced diagonal form
+    while (row >= 0 && col >= 0) {
+
+        // adjust rows
+
+        for (int adjustedRow = row - 1; adjustedRow >= 0; adjustedRow--) {
+            
+            // subtract the current row from the others (and multiply accordingly)
+
+            double leadingTermInAdjustedRow = GetMatrixValueAtPos(matrix, adjustedRow, col);
+
+            AddRowTimesLambdaToAnother (matrix, row, adjustedRow, -leadingTermInAdjustedRow);
+            AddValueTimeLambdaToAnother (vector, row, adjustedRow, -leadingTermInAdjustedRow);
+        }
+
+        col--;
+        row--;
+    }
+
+    Vector* result = malloc(sizeof(Vector));
+    memcpy(result, &vector, sizeof(Vector));
+
+    FreeMatrix(matrix);
+
+    return result;
 }
 
 int main () {
@@ -312,10 +370,10 @@ int main () {
     Matrix A = ZeroMatrix (2, 2);
     Vector b = ZeroVector (2);
 
-    SetMatrixValueAtPos(A, 0, 0, 2);
-    SetMatrixValueAtPos(A, 0, 1, 0);
+    SetMatrixValueAtPos(A, 0, 0, 4);
+    SetMatrixValueAtPos(A, 0, 1, 3);
     SetMatrixValueAtPos(A, 1, 0, 1);
-    SetMatrixValueAtPos(A, 1, 1, 2);
+    SetMatrixValueAtPos(A, 1, 1, 1);
 
     SetVectorValueAtPos(b, 0, 3);
     SetVectorValueAtPos(b, 1, 1);
@@ -323,7 +381,19 @@ int main () {
     PrintMatrix(A);
     PrintVector(b);
 
-    GaussEliminate(A, b);
+    Vector* result = GaussEliminate(A, b);
+
+    if (result == NO_RESULT) {
+        printf("No result!\n");
+    } else if (result == INFINITE_RESULTS) {
+        printf("Infinite results!\n");
+    } else {
+        printf("Result:\n");
+        PrintVector(*result);
+    }
+
+    FreeVector(*result);
+    free(result);
 
     return 0;
 }
