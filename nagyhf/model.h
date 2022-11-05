@@ -50,9 +50,15 @@ typedef struct {
     double probs[NUM_CLASSES];
 } Result;
 
+/// @brief The sigmoid function
+/// @brief f(x) = 1 / (1 + e^-x) 
 double Sigmoid (double x);
+/// @brief Derivative of the sigmoid function 
 double SigmoidDer (double x);
+/// @brief The ReLU function
+/// @brief f(x) = x >= 0 ? x : 0 
 double ReLU (double x);
+/// @brief The derivative of the ReLU function
 double ReLUDer (double x);
 
 /// @brief Prints a model to stdout
@@ -81,6 +87,7 @@ Model CreateModelFromLayout(LayerLayout* layout);
 /// @param model 
 /// @return pointer to the buffer
 double** MakeValueBufferForModel (int numLayers);
+/// @brief frees the value buffer
 void FreeValueBuffer (Model model, double** buffer);
 /// @brief Forwards the given image through the given model, and optionally saves the SUMS of the neurons to a buffer (not the values after the activation function)
 /// @param model the model, with which we want to predict
@@ -106,11 +113,15 @@ void BackPropagate(
 /// @param model it is ok if it's not a pointer, because the layers variable will still point to the same memory address
 /// @param image 
 /// @param learningRate 
-/// @returns wether the result is ok or inf/-inf/nan --> true = good, false = stop learning
+/// @returns whether the result is ok or inf/-inf/nan --> true = good, false = stop learning
 bool FitModelForImage (Model model, LabeledImage* image, double learningRate, double** preallocatedValueBuffer, double** preallocatedDerBuffer, double* out_cost);
+/// @brief Runs the model with the given image and gives back the cost
 double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImages);
 /// @brief argmax
 int GetPredictionFromResult(Result result);
+/// @brief Determines whether the result's probs are valid numbers
 bool IsResultOk (Result result);
+/// @brief Writes the model's weights and biases to a file with the given path
 void SaveModelToFile (Model model, const char* filePath);
+/// @brief Reads the given file and returns the model stored in it
 Model LoadModelFromFile (const char* filePath);
