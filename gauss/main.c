@@ -372,11 +372,11 @@ int main () {
 
     SetMatrixValueAtPos(A, 0, 0, 4);
     SetMatrixValueAtPos(A, 0, 1, 3);
-    SetMatrixValueAtPos(A, 1, 0, 1);
+    SetMatrixValueAtPos(A, 1, 0, 0);
     SetMatrixValueAtPos(A, 1, 1, 1);
 
     SetVectorValueAtPos(b, 0, 3);
-    SetVectorValueAtPos(b, 1, 1);
+    SetVectorValueAtPos(b, 1, 0);
 
     PrintMatrix(A);
     PrintVector(b);
@@ -390,10 +390,9 @@ int main () {
     } else {
         printf("Result:\n");
         PrintVector(*result);
+        FreeVector(*result);
+        free(result);
     }
-
-    FreeVector(*result);
-    free(result);
 
     return 0;
 }
