@@ -233,7 +233,7 @@ bool IsVectorZero (Vector vector) {
 }
 
 int GetLastNonZeroRow (Matrix matrix) {
-    for (int row = matrix.numRows; row >= 0; row--)
+    for (int row = matrix.numRows - 1; row >= 0; row--)
         if (IsZeroRow(matrix, row) == false)
             return row;
 
@@ -251,11 +251,16 @@ Vector* GaussEliminate (Matrix A, Vector b) {
     // making the upper-triangle form
     while (row < matrix.numRows && col < matrix.numCols) {
 
+        printf("row: %d, col: %d\n", row, col);
+        PrintMatrix(matrix);
+        PrintVector(vector);
+
         double leadingTerm = GetMatrixValueAtPos(matrix, row, col);
 
         if (leadingTerm == 0) {
 
             if (IsZeroRow(matrix, row)) {
+
                 if (GetVectorValueAtPos(vector, row) != 0) {
                     // 0x+0y+0z != 0
                     // --> there is no solution
@@ -265,6 +270,15 @@ Vector* GaussEliminate (Matrix A, Vector b) {
                 }
 
                 int rowToSwap = GetLastNonZeroRow (matrix);
+
+                printf("Row is zero, it is ok, row: %d, swap: %d\n", row, rowToSwap);
+
+                if (rowToSwap <= row) {
+                    //0x=0
+                    FreeMatrix(matrix);
+                    FreeVector(vector);
+                    return (Vector*)INFINITE_RESULTS;
+                }
 
                 if (rowToSwap == -1) {
                     // matrix is null matrix
@@ -280,6 +294,11 @@ Vector* GaussEliminate (Matrix A, Vector b) {
                     // 0x=0
                     return (Vector*)INFINITE_RESULTS;
                 }
+
+                SwapRows(matrix, row, rowToSwap);
+                SwapValues(vector, row, rowToSwap);
+
+                continue;    
             }
 
             int rowToSwap = GetIndexOfNonZero (matrix, row + 1, col);
@@ -291,6 +310,7 @@ Vector* GaussEliminate (Matrix A, Vector b) {
             }
 
             SwapRows(matrix, row, rowToSwap);
+            SwapValues(vector, row, rowToSwap);    
             
             continue; // without changing the column or row index
         }
@@ -333,6 +353,14 @@ Vector* GaussEliminate (Matrix A, Vector b) {
     
     */
 
+    if (row != matrix.numRows) {
+        // there are 0 rows beneath
+        // there are infinite solutions
+        FreeMatrix(matrix);
+        FreeVector(vector);
+        return (Vector*)INFINITE_RESULTS;
+    }
+
 
     // in the previous loop, we added +1, +1, but we want to revert these
     col--;
@@ -367,16 +395,22 @@ Vector* GaussEliminate (Matrix A, Vector b) {
 
 int main () {
 
-    Matrix A = ZeroMatrix (2, 2);
-    Vector b = ZeroVector (2);
+    Matrix A = ZeroMatrix (3, 3);
+    Vector b = ZeroVector (3);
 
-    SetMatrixValueAtPos(A, 0, 0, 4);
-    SetMatrixValueAtPos(A, 0, 1, 3);
+    SetMatrixValueAtPos(A, 0, 0, 1);
+    SetMatrixValueAtPos(A, 0, 1, 0);
+    SetMatrixValueAtPos(A, 0, 2, 0);
     SetMatrixValueAtPos(A, 1, 0, 0);
-    SetMatrixValueAtPos(A, 1, 1, 1);
+    SetMatrixValueAtPos(A, 1, 1, 0);
+    SetMatrixValueAtPos(A, 1, 2, 0);
+    SetMatrixValueAtPos(A, 2, 0, 0);
+    SetMatrixValueAtPos(A, 2, 1, 0);
+    SetMatrixValueAtPos(A, 2, 2, 1);
 
-    SetVectorValueAtPos(b, 0, 3);
+    SetVectorValueAtPos(b, 0, 1);
     SetVectorValueAtPos(b, 1, 0);
+    SetVectorValueAtPos(b, 2, 0);
 
     PrintMatrix(A);
     PrintVector(b);
