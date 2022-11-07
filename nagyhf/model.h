@@ -93,11 +93,11 @@ void FreeValueBuffer (Model model, double** buffer);
 /// @param model the model, with which we want to predict
 /// @param input input image's data
 /// @param out_neuronValues the SUMS!!! of the neurons, so sum(w*n + b)
-/// @return the prediction result
+/// @returns the prediction result
 Result Predict(Model model, double* input, double** out_neuronValues);
 /// @brief implements cross-entropy algorithm
 /// @brief cross-entropy: -sum(y[i] * log(s[i])) for i: 0..NUM_CLASSES
-/// @return Cross-entropy cost of the given image with the label
+/// @returns Cross-entropy cost of the given image with the label
 double CalculateCost(uint8_t label, double* resultValues);
 /// @brief Adjusts the model's weights
 /// @param neuronValues holds the values of the neurons, filled during the prediction phase
@@ -119,9 +119,9 @@ bool FitModelForImage (Model model, LabeledImage* image, double learningRate, do
 double CalculateAvgCostForModel (Model model, LabeledImage* images, int numImages);
 /// @brief argmax
 int GetPredictionFromResult(Result result);
-/// @brief Determines whether the result's probs are valid numbers
+/// @brief Determines whether the result's probs are valid numbers.
 bool IsResultOk (Result result);
-/// @brief Writes the model's weights and biases to a file with the given path
+/// @brief Writes the model's weights and biases to a file with the given path.
 void SaveModelToFile (Model model, const char* filePath);
-/// @brief Reads the given file and returns the model stored in it
+/// @brief Reads the given file and returns the model stored in it.
 Model LoadModelFromFile (const char* filePath);

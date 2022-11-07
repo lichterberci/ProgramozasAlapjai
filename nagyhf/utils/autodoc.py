@@ -158,7 +158,7 @@ def create_markdown_text_for_file (filename: str, function_docs_list: List[Funct
         result += f"### __{docs.function_name}__\n"
         
         result += "```c\n"
-        result += docs.function_string
+        result += docs.function_string.strip() + "\n"
         result += "```\n"
         
         if docs.comment_brief != "" :
