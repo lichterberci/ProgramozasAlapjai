@@ -16,7 +16,7 @@ typedef enum {
 
 } ActivationFunction;
 
-typedef struct {
+typedef struct Layer {
 
     uint32_t inputDim;
     uint32_t outputDim;
@@ -33,20 +33,20 @@ typedef struct {
 
 } Layer;
 
-typedef struct {
+typedef struct Model {
     
     uint8_t numLayers; // min 1 --> 1 = no hidden layers
     Layer* layers;
 
 } Model;
 
-typedef struct {
+typedef struct LayerLayout {
     uint32_t numNeurons;
     ActivationFunction activationFunction;
     struct LayerLayout* next; // for linked lists
 } LayerLayout;
 
-typedef struct {
+typedef struct Result {
     double probs[NUM_CLASSES];
 } Result;
 

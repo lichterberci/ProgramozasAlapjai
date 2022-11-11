@@ -697,6 +697,20 @@ bool IsResultOk (Result result) {
 
 void SaveModelToFile (Model model, const char* filePath) {
 
+    // check for .model file extension
+    
+    if (strlen(filePath) < strlen(".model")) {
+        // filePath too short
+        fprintf(stderr, "[ERROR] Path [\"%s\"] is too short!", filePath);
+        exit(-1);
+    }
+
+    if (strcmp(filePath + strlen(filePath) - strlen(".model"), ".model") != 0) {
+        // incorrect file extension
+        fprintf(stderr, "[ERROR] Path [\"%s\"] has incorrect file extension! Should be .model!\n", filePath );
+        exit(-1);
+    }
+
     FILE* fp = fopen(filePath, "wb");
 
     printf("[LOG] Saving model to [\"%s\"]...\n", filePath);
@@ -741,6 +755,20 @@ void SaveModelToFile (Model model, const char* filePath) {
 }
 
 Model LoadModelFromFile (const char* filePath) {
+
+    // check for .model file extension
+
+    if (strlen(filePath) < strlen(".model")) {
+        // filePath too short
+        fprintf(stderr, "[ERROR] Path [\"%s\"] is too short!", filePath);
+        exit(-1);
+    }
+
+    if (strcmp(filePath + strlen(filePath) - strlen(".model"), ".model") != 0) {
+        // incorrect file extension
+        fprintf(stderr, "[ERROR] Path [\"%s\"] has incorrect file extension! Should be .model!\n", filePath );
+        exit(-1);
+    }
 
     Model model = {0, NULL};
 
