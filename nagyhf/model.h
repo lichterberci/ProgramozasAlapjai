@@ -10,9 +10,9 @@
 // #define NUM_CLASSES 2
 #define MAX_LAYER_DIM 1000
 
-typedef enum {
+typedef enum ActivationFunction {
 
-    SIGMOID, RELU, SOFTMAX
+    SIGMOID, RELU, SOFTMAX, LRELU
 
 } ActivationFunction;
 
@@ -60,6 +60,10 @@ double SigmoidDer (double x);
 double ReLU (double x);
 /// @brief The derivative of the ReLU function
 double ReLUDer (double x);
+/// @brief The Leaky ReLU function
+double LReLU (double x);
+/// @brief The derivative of the LReLU function
+double LReLUDer (double x);
 
 /// @brief Prints a model to stdout
 void PrintModel(Model model);

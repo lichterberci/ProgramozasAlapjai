@@ -41,6 +41,8 @@ int main (int argc, char **argv) {
             printf("[WARNING] Model layout ignored because the model was loaded!\n");
         }
 
+        printf("freeing linked list...\n");
+
         setup.layerLayoutHead = setup.layerLayout;
         // free layout list
         while (setup.layerLayoutHead != NULL) {
@@ -48,7 +50,6 @@ int main (int argc, char **argv) {
             free(setup.layerLayoutHead);
             setup.layerLayoutHead = tmp;
         }
-        free(setup.layerLayout);
     }
 
     if (model.numLayers == 0) {

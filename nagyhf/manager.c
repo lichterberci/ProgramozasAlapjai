@@ -152,6 +152,8 @@ ProgramSetup ProcessArgs (int argc, char** argv) {
             ActivationFunction actfn;
             if (strcmp(argv[i], "RELU") == 0 || strcmp(argv[i], "relu") == 0) {
                 actfn = RELU;
+            } else if (strcmp(argv[i], "LRELU") == 0 || strcmp(argv[i], "lrelu") == 0) {
+                actfn = LRELU;
             } else if (strcmp(argv[i], "SIGMOID") == 0 || strcmp(argv[i], "sigmoid") == 0) {
                 actfn = SIGMOID;
             } else {

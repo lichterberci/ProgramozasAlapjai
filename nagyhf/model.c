@@ -8,6 +8,8 @@
 #define VERBOSE_PREDICTION 0
 #define VERBOSE_BACKPROP 0
 
+#define LRELU_ALPHA 0.01
+
 int min (int a, int b) { 
     return a < b ? a : b;
 }
@@ -32,6 +34,13 @@ double ReLU (double x) {
 
 double ReLUDer (double x) {
     return x >= 0 ? 1 : 0;
+}
+
+double LReLU (double x) {
+    return x >= 0 ? x : LRELU_ALPHA * x;
+}
+double LReLUDer (double x) {
+    return x >= 0 ? 1 : LRELU_ALPHA;
 }
 
 void PrintResult(Result result) {
@@ -73,7 +82,8 @@ void PrintModel(Model model) {
         const char* activationFunctionString = (
                 model.layers[i].activationFunction == SIGMOID ? 
                 "sigmoid" : model.layers[i].activationFunction == RELU ?
-                "ReLU" : model.layers[i].activationFunction == SOFTMAX ?
+                "ReLU" : model.layers[i].activationFunction == LRELU ?
+                "LReLU" : model.layers[i].activationFunction == SOFTMAX ?
                 "softmax" : "Unknown"
             );
 
@@ -136,7 +146,8 @@ void PrintModelLayout(Model model) {
         const char* activationFunctionString = (
                 model.layers[i].activationFunction == SIGMOID ? 
                 "sigmoid" : model.layers[i].activationFunction == RELU ?
-                "ReLU" : model.layers[i].activationFunction == SOFTMAX ?
+                "ReLU" : model.layers[i].activationFunction == LRELU ?
+                "LReLU" : model.layers[i].activationFunction == SOFTMAX ?
                 "softmax" : "Unknown"
             );
 
@@ -313,7 +324,8 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
             const char* activationFunctionString = (
                     currentLayer.activationFunction == SIGMOID ? 
                     "sigmoid" : currentLayer.activationFunction == RELU ?
-                    "ReLU" : currentLayer.activationFunction == SOFTMAX ?
+                    "ReLU" : currentLayer.activationFunction == LRELU ?
+                    "LReLU" : currentLayer.activationFunction == SOFTMAX ?
                     "softmax" : "Unknown"
                 );
 
@@ -371,6 +383,8 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
                     value = Sigmoid(currentSum);
                 else if (currentLayer.activationFunction == RELU)
                     value = ReLU(currentSum);
+                else if (currentLayer.activationFunction == LRELU)
+                    value = LReLU(currentSum);
                 else
                     fprintf(stderr, "[ERROR] unknown activation function %d!\n", currentLayer.activationFunction);
             } else {
@@ -570,6 +584,11 @@ void BackPropagate(Model model, double** neuronValues, LabeledImage* image, doub
                     else if (model.layers[layerIndex].activationFunction == RELU)
                         delta *= (
                                 ReLUDer(neuronValues[layerIndex][i]) 
+                                * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
+                            );
+                    else if (model.layers[layerIndex].activationFunction == LRELU)
+                        delta *= (
+                                LReLUDer(neuronValues[layerIndex][i]) 
                                 * model.layers[prevLayerIndex].weights[i + prevLayerDim * j]
                             );
                     else if (model.layers[layerIndex].activationFunction == SOFTMAX) {
