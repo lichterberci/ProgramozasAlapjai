@@ -8,7 +8,7 @@
 #define VERBOSE_PREDICTION 0
 #define VERBOSE_BACKPROP 0
 
-#define LRELU_ALPHA 0.01
+#define LRELU_ALPHA 0.05
 
 int min (int a, int b) { 
     return a < b ? a : b;
