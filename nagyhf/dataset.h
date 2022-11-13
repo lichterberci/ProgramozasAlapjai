@@ -25,9 +25,15 @@ typedef struct {
 
 } Dataset;
 
+/// @brief Reads 4 bytes from a file and converts them into a signed int32_t
 int ReadInt (FILE* fp);
+/// @brief Reads 1 byte from a file
 uint8_t ReadByte (FILE* fp);
+/// @brief Frees up a dataset (with all its images) 
 void FreeDataset (Dataset dataset);
+/// @brief Returns the pixel value of an image at the given coordinates
 double GetPixelOfImage(LabeledImage image, int x, int y);
+/// @brief Prints the given image into stdout
 void PrintLabeledImage (LabeledImage image);
+/// @brief Reads 2 files (one for the images, one for the labels) and zips them into a single dataset 
 Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath);

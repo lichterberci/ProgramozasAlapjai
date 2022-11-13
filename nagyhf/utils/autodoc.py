@@ -158,7 +158,7 @@ def create_markdown_text_for_file (filename: str, function_docs_list: List[Funct
         result += f"### __{docs.function_name}__\n"
         
         result += "```c\n"
-        result += docs.function_string
+        result += docs.function_string.strip() + "\n"
         result += "```\n"
         
         if docs.comment_brief != "" :
@@ -183,11 +183,25 @@ def create_markdown_text_for_file (filename: str, function_docs_list: List[Funct
 
 def main (argc: int, args: List[str]):
 
-    if argc != 3 :
-        print("ERROR: argument count incorrect! (should be 2!)")
+    if argc > 4 or argc < 3 :
+        print("ERROR: argument count incorrect! (should be 2 or 3!)")
         return
+    
+    append_file_name = ""
+    output_file_name = ""
+    search_dir = ""
+    
+    if argc == 3 :
+        # codefilepath, dir, outputfilepath
+        search_dir = args[1]
+        output_file_name = args[2]
+    elif argc == 4 :
+        # outputfilepath, appendfilepath, dir, outputfilepath
+        append_file_name = args[1]
+        search_dir = args[2]
+        output_file_name = args[3]
 
-    file_data_list = read_files_in_dir(args[1], [".h", ".c"])
+    file_data_list = read_files_in_dir(search_dir, [".h", ".c"])
 
     result_markdown = ""
     
@@ -205,10 +219,17 @@ def main (argc: int, args: List[str]):
     
     result_markdown += "\n\n---\n\n".join(documentations_of_files)
 
-    with open(os.path.join(args[1], args[2]), "w") as f :
+    append_file_contents = []
+    
+    if append_file_name != "" :
+        with open (os.path.join(search_dir, append_file_name), "r") as f :
+            append_file_contents = f.readlines()
+
+    with open(os.path.join(search_dir, output_file_name), "w") as f :
+        f.writelines(append_file_contents)
         f.write(result_markdown)
         
-    print(f"Result saved to {os.path.join(args[1], args[2])}")
+    print(f"Result saved to {os.path.join(search_dir, output_file_name)}")
     
     print("code exited safely")
 

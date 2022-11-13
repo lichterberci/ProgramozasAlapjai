@@ -9,7 +9,7 @@
 #include "model.h"
 #include "manager.h"
 
-
+/// @brief The entry point of the program. 
 int main (int argc, char **argv) {
 
     srand(0); // default seed

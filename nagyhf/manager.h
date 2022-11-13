@@ -35,9 +35,16 @@ typedef struct {
 
 } ProgramSetup;
 
+/// @brief Sets the program into default mode.
 ProgramSetup GetDefaultSetup ();
+/// @brief Reads the command line arguments (passed as args here), 
+/// and determines the mode, the program should be running in.
 ProgramSetup ProcessArgs (int argc, char** argv);
+/// @brief Prints images to stdout with their label for as long as the given dataset lasts 
 void PrintImagesInfinitely (Dataset dataset);
+/// @brief Tests the integrity of the code, by running the XOR problem on it.
+/// If the backpropagation code is written successfully, the model should be able to learn
+/// a non-linear function (the XOR function).
 void TestXORProblem (
     int numNeuronsInHiddenLayer, 
     ActivationFunction activationFunction,
@@ -45,7 +52,9 @@ void TestXORProblem (
     double learningRate,
     double maxDeviationFromResult
 );
+/// @brief Calculates the accuracy of a model on a dataset. 
 double GetAccuracy (Model model, Dataset dataset);
+/// @brief Fits a model with the given parameters. 
 void FitModel (
     Model model, 
     Dataset trainSet, 
@@ -55,4 +64,5 @@ void FitModel (
     bool saveContinuously,
     const char* savePath
 );
+/// @brief Prints images to stdout with their labels and the given model's predictions.
 void PrintImagesWithPredictions (Model model, Dataset dataset, bool onlyWrongs);
