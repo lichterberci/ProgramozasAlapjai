@@ -2,6 +2,8 @@
 
 ## Reading the datasets
 
+A dataset is read from 2 files: one contains the pixel-data, the other one contains the labels. They are read simultaneously and stored in RAM in a Dataset struct.
+
 ### Format of the image files
 
 - 4B magic number
@@ -56,8 +58,20 @@ Then we adjust the weights and biases using the chain rule. This is easy, as we 
 ## Overview of the program's structure
 
 The program reads the arguments, determines the actions, it would have to take (training, testing of accuracy, showing images), and does them sequentially. The other parameters just customize this basic flow (eg.: by setting the dataset's folder).
+## Saving / loading models
 
-## Important types and functions
+Each model can be saved/loaded to/from a file. Usually we use the .model extension, but it can differ.
+
+### The file-structure of the .model extension
+
+- 1B # layers
+- for each layer:
+  - 4B inputDim
+  - 4B outputDim
+  - inputDim \* outputDim \* 8B weights
+  - outputDIm \* 8B biases
+
+## Important types
 
 ### Model *(struct)*
 
@@ -79,19 +93,3 @@ Defines an image with its label. Contains its pixels in a stack-allocated array.
 
 Defines a prediction-result. Holds 10 stack-allocated probabilities.
 
-### FitModelForImage *(function)*
-
-This function gets a prediction from the model, and then computes the loss and performs backpropagation afterwards.
-
-## Saving / loading models
-
-Each model can be saved/loaded to/from a file. Usually we use the .model extension, but it can differ.
-
-### The file-structure
-
-- 1B # layers
-- for each layer:
-  - 4B inputDim
-  - 4B outputDim
-  - inputDim * outputDim * 8B weights
-  - outputDIm * 8B biases

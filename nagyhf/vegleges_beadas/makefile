@@ -1,6 +1,6 @@
 
 CC = gcc
-LDFLAGS=-lgdi32 -Wall
+LDFLAGS=-lgdi32
  
 EXECUTABLE = mnist
 

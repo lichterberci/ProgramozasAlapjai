@@ -219,7 +219,6 @@ Model CreateModel(int numHiddenLayers, ...) {
     model.layers = malloc(model.numLayers * sizeof(Layer));
 
     va_list ap;
-    int numParams = numHiddenLayers * 2 + 1;
     
     va_start(ap, numHiddenLayers); // 2nd param: last arg
 
@@ -370,12 +369,13 @@ Result Predict(Model model, double* input, double** out_neuronValues) {
 
             // we want to save the sum, not the value 
             // (in backprop, we don't need the value, but we need the sum)
-            if (out_neuronValues != NULL)
+            if (out_neuronValues != NULL) {
                 if (out_neuronValues[currentLayerIndex] != NULL)
                     out_neuronValues[currentLayerIndex][outputIndex] = currentSum;
                 else
                     fprintf(stderr, "[ERROR] out_neurons is not null, but out_neurons[%d] is!\n", currentLayerIndex);
-
+            }
+            
             double value;
 
             if (currentLayerIndex < numLayers - 1) {

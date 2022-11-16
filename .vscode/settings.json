@@ -86,5 +86,9 @@
     "dataset.h": "c",
     "stdint.h": "c",
     "stdarg.h": "c"
-  }
+  },
+  "cSpell.words": [
+    "backpropagation",
+    "struct"
+  ]
 }

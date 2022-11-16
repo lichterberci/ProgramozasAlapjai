@@ -149,6 +149,9 @@ def create_function_docs (filename: str, contents: List[str]) :
 
 def create_markdown_text_for_file (filename: str, function_docs_list: List[FunctionDocs]) :
     
+    if len (function_docs_list) == 0 :
+        return ""
+    
     result = ""
     
     result += f"## __{filename}__\n"
@@ -216,6 +219,8 @@ def main (argc: int, args: List[str]):
         documentation_of_file = create_markdown_text_for_file(file_data["filename"], function_docs)
         
         documentations_of_files.append(documentation_of_file)
+    
+    documentations_of_files = filter(lambda x : x != "", documentations_of_files)
     
     result_markdown += "\n\n---\n\n".join(documentations_of_files)
 

@@ -102,7 +102,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
     int numCols = ReadInt(imageFP);
 
     int imageSize = numCols * numRows; // 784
-    int imageOffset = 4 * sizeof(int); // we start reading the images from here
+    // int imageOffset = 4 * sizeof(int); // we start reading the images from here
 
     int labelMagicNumber = ReadInt(labelFP);
     int numLabels = ReadInt(labelFP);
@@ -128,7 +128,7 @@ Dataset ReadDatasetFromFile (const char* imagePath, const char* labelPath) {
         return emptyResult;
     }
 
-    int labelOffset = 2 * sizeof(int); // we start reading the labels from here
+    // int labelOffset = 2 * sizeof(int); // we start reading the labels from here
 
     if (numLabels != numImages) {
         fprintf(stderr, "[ERROR] # images (%d) != # labels (%d)\n", numImages, numLabels);

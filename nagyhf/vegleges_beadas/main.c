@@ -58,13 +58,13 @@ int main (int argc, char **argv) {
 
     PrintModelLayout(model);
 
-    char trainImagePath[1000];
+    char trainImagePath[1024];
     sprintf(trainImagePath, "%s/train-images.idx3-ubyte", setup.dataFolderPath);
-    char trainLabelPath[1000];
+    char trainLabelPath[1024];
     sprintf(trainLabelPath, "%s/train-labels.idx1-ubyte", setup.dataFolderPath);
-    char testImagePath[1000];
+    char testImagePath[1024];
     sprintf(testImagePath, "%s/t10k-images.idx3-ubyte", setup.dataFolderPath);
-    char testLabelPath[1000];
+    char testLabelPath[1024];
     sprintf(testLabelPath, "%s/t10k-labels.idx1-ubyte", setup.dataFolderPath);
 
     Dataset trainSet = ReadDatasetFromFile(trainImagePath, trainLabelPath);
