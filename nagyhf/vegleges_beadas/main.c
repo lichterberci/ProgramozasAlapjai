@@ -5,12 +5,16 @@
 #include "math.h"
 #include "string.h"
 
+#include "debugmalloc.h"
+
 #include "dataset.h"
 #include "model.h"
 #include "manager.h"
 
 /// @brief The entry point of the program. 
 int main (int argc, char **argv) {
+
+    debugmalloc_max_block_size(4000000000); // 4GB
 
     srand(0); // default seed
 

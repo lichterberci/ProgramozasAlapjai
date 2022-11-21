@@ -2,6 +2,8 @@
 #include "model.h"
 #include "stdint.h"
 
+#include "debugmalloc.h"
+
 #define DEFAULT_NUM_NEURONS 200
 #define DEFAULT_ACTIVATION_FUNCTION RELU
 #define DEFAULT_NUM_EPOCHS 1

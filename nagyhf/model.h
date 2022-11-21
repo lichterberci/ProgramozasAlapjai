@@ -4,6 +4,8 @@
 #include "stdarg.h"
 #include "stdbool.h"
 
+#include "debugmalloc.h"
+
 #include "dataset.h"
 
 #define NUM_CLASSES 10 
