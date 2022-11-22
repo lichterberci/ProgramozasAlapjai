@@ -50,89 +50,86 @@ void PrintList (Node* list) {
     Node* head = list;
     while (head != NULL) {
         printf("Node (%p) - %d%s\n", head, head->value, head->isGuard ? ", guard" : "");
+        // PrintNode(head);
         head = head->next;
     }
 }
 
-void SwapRange (Node* startPtr, Node* endPtr) {
-    
-    printf("Swap range from %p to %p\n", startPtr, endPtr);
+Node* GetLargest (Node* list) {
 
-    Node* head = startPtr->next;
+    Node* largestNode = list;
+    Node* head = list;
+
+    while (head != NULL) {
+
+        if (head->isGuard == false && head->value > largestNode->value)
+            largestNode = head;
+
+        head = head->next;
+    }
+
+    return largestNode;
+}
+
+void SwapRange (Node* startPtr, Node* endPtr) {
+
+    Node* head = startPtr;
 
     while (head->prev != endPtr) {
-        
-        /*
-        
-        start:
-            +---+
-            |   |  <--- lowerLower
-            +---+
-            A   |
-            |   |
-            |   V
-            +---+
-            | A |  <--- lower
-            +---+
-            A   |
-            |   |
-            |   V
-            +---+
-            | B |  <--- upper, head
-            +---+
-            A   |
-            |   |
-            |   V
-            +---+
-            |   |   <--- upperUpper
-            +---+
-        finish:
-            +---+
-            |   |   <--- lowerLower
-            +---+
-            A   |
-            |   |
-            |   V
-            +---+
-            | B |   <--- upper
-            +---+
-            A   |
-            |   |
-            |   V
-            +---+
-            | A |   <--- lower
-            +---+
-            A   |
-            |   |
-            |   V
-            +---+
-            |   |   <--- upperUpper, head
-            +---+
-        */
 
         Node* lower = head->prev;
-        Node* upper = head;
-        head = head->next;
+        Node* upper = head->next;
 
-        printf("lower:\n");
-        PrintNode(lower);
-        printf("upper:\n");
-        PrintNode(upper);
+        head->prev = upper;
+        head->next = lower;
 
-        Node* lowerLower = lower->prev;
-        Node* upperUpper = upper->next;
-
-        lower->next = lowerLower;
-        lower->prev = upper;
-
-        upper->next = lower;
-        upper->prev = upperUpper;
+        head = upper;
     }
 
     Node* startPtrNext = startPtr->next;
+    startPtrNext->next = endPtr;
     startPtr->next = head;
     endPtr->prev = startPtrNext;
+    head->prev = startPtr;
+}
 
+void PancakeSort (Node* list) {
+
+    Node* guard1 = list;
+    Node* guard2 = list;
+    while (guard2->next != NULL) guard2 = guard2->next;
+
+    Node* sortedHead = guard1->next;
+
+    while (sortedHead->isGuard == false) {
+        Node* largest = GetLargest (sortedHead);
+        // printf("------INIT-----\n");
+        // printf("sorted head: %d\n", sortedHead->value);
+        // printf("largest: %d\n", largest->value);
+        // PrintList(list);
+        // printf("---------------\n");
+
+        if (largest == sortedHead) {
+            sortedHead = sortedHead->next;
+            continue;
+        }
+
+        // printf("-----SWAP-1---\n");
+        // printf("from: %d to: %d\n", largest->value, guard2->prev->value);
+        SwapRange(largest, guard2->prev);
+        // PrintList(list);
+        // printf("---------------\n");
+        
+        
+        // printf("------SWAP-2---\n");
+        // printf("from %d to %d\n", sortedHead->value, guard2->prev->value);
+        SwapRange(sortedHead, guard2->prev);
+        // PrintList(list);
+        // printf("---------------\n");
+        sortedHead = largest->next;
+        // printf("new sorted head: %d\n", sortedHead->value);
+        // printf("---------------\n");
+    }
 }
 
 int main () {
@@ -141,16 +138,23 @@ int main () {
 
     list = AddToList(-1, true, list);
     list = AddToList(0, false, list);
+    list = AddToList(8, false, list);
+    list = AddToList(4, false, list);
+    list = AddToList(7, false, list);
+    list = AddToList(5, false, list);
     list = AddToList(1, false, list);
     list = AddToList(2, false, list);
+    list = AddToList(6, false, list);
     list = AddToList(3, false, list);
-    list = AddToList(4, false, list);
+    list = AddToList(9, false, list);
     list = AddToList(-1, true, list);
 
+    printf("original:\n");
     PrintList(list);
 
-    SwapRange(list->next, list->next->next->next);
-
+    PancakeSort(list);
+    
+    printf("result:\n");
     PrintList(list);
 
     FreeList(list);
